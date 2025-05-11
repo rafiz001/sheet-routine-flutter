@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sheet_routine/data/notifiers.dart';
 import 'package:sheet_routine/views/pages/home_page.dart';
 import 'package:sheet_routine/views/pages/profile_page.dart';
 
@@ -31,7 +32,9 @@ class WidgetTree extends StatelessWidget {
           ],
         ),
       ),
-      body: pages.elementAt(0),
+      body: ValueListenableBuilder(valueListenable: selectedPageNotifier, builder: (context, selectedPage, child) {
+        return pages.elementAt(selectedPage);
+      },),
       floatingActionButton: FloatingActionButton(
         onPressed: null, //_incrementCounter,
         tooltip: 'Increment',
