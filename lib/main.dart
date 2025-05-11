@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sheet_routine/data/notifiers.dart';
 import 'package:sheet_routine/views/widget_tree.dart';
 
 void main() {
@@ -11,20 +12,27 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData.light(),
-      darkTheme: ThemeData.dark(),
-      themeMode: ThemeMode.system,
-
-      home: const MyHomePage(title: 'MD. RAFIZ UDDIN'),
+    return ValueListenableBuilder(
+      valueListenable: isDarkNotifier,
+      builder: (context, isDark, child) {
+        return MaterialApp(
+          title: 'Flutter Demo',
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.deepOrange,
+              brightness: isDark ? Brightness.dark : Brightness.light,
+            ),
+          ),
+          debugShowCheckedModeBanner: false,
+          home: const MyHomePage(title: 'MD. RAFIZ UDDIN'),
+        );
+      },
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
-
 
   final String title;
 
@@ -33,11 +41,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  
-
   @override
   Widget build(BuildContext context) {
-   
     return WidgetTree();
   }
 }

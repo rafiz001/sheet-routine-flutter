@@ -43,7 +43,7 @@ class HomePage extends StatelessWidget {
                       padding: EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(25),
-                        color: Colors.green,
+                        color: Theme.of(context).colorScheme.surfaceBright,
                       ),
                       child: SelectableText(
                         "$_counter",
@@ -56,7 +56,7 @@ class HomePage extends StatelessWidget {
                       padding: EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(25),
-                        color: Colors.green,
+                        color: Theme.of(context).colorScheme.surfaceBright,
                       ),
                       child: SelectableText(
                         "$_counter",
@@ -75,7 +75,7 @@ class HomePage extends StatelessWidget {
                       padding: EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(25),
-                        color: Colors.green,
+                        color: Theme.of(context).colorScheme.surfaceBright,
                       ),
                       child: SelectableText(
                         "$_counter",
@@ -88,7 +88,7 @@ class HomePage extends StatelessWidget {
                       padding: EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(25),
-                        color: Colors.green,
+                        color: Theme.of(context).colorScheme.surfaceBright,
                       ),
                       child: SelectableText(
                         "$_counter",
