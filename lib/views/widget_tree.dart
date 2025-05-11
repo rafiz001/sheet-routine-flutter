@@ -15,15 +15,16 @@ class WidgetTree extends StatelessWidget {
  
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(valueListenable: isDarkNotifier, builder: (context, isDark, child) {
-      return  Scaffold(
+    return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: SelectableText("Md. Rafiz Uddin"),
         centerTitle: true,
         actions: [IconButton(onPressed: () {
-          isDarkNotifier.value=!isDark;
-        }, icon: Icon(isDark?Icons.light_mode:Icons.dark_mode))],
+          isDarkNotifier.value=!isDarkNotifier.value;
+        }, icon: ValueListenableBuilder(valueListenable: isDarkNotifier, builder: (context, isDark, child) {
+          return Icon(isDark? Icons.light_mode : Icons.dark_mode);
+        },)) ],
       ),
       drawer: Drawer(
         child: Column(
@@ -45,6 +46,5 @@ class WidgetTree extends StatelessWidget {
       ), // This trailing comma makes auto-formatting nicer for build methods.
       bottomNavigationBar: NavbarWidget(),
     );
-    },);
   }
 }
