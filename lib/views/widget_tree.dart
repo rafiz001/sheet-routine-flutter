@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sheet_routine/data/notifiers.dart';
 import 'package:sheet_routine/views/pages/home_page.dart';
 import 'package:sheet_routine/views/pages/profile_page.dart';
+import 'package:sheet_routine/views/pages/settings_page.dart';
 
 import 'widgets/navbar_widget.dart';
 
@@ -24,7 +25,13 @@ class WidgetTree extends StatelessWidget {
           isDarkNotifier.value=!isDarkNotifier.value;
         }, icon: ValueListenableBuilder(valueListenable: isDarkNotifier, builder: (context, isDark, child) {
           return Icon(isDark? Icons.light_mode : Icons.dark_mode);
-        },)) ],
+        },)),
+        IconButton(onPressed: () {
+          Navigator.push(context, MaterialPageRoute(builder: (context) {
+            return SettingsPage();
+          },));
+        }, icon: Icon(Icons.settings_outlined),)
+         ],
       ),
       drawer: Drawer(
         child: Column(
@@ -32,7 +39,11 @@ class WidgetTree extends StatelessWidget {
             DrawerHeader(child: Text("RAfiz")),
             ListTile(title: Text("Hi this is a tile 0")),
             ListTile(title: Text("Hi this is a tile 1")),
-            ListTile(title: Text("Hi this is a tile 2")),
+            ListTile(title: Text("Go to settings"), onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+            return SettingsPage();
+          },));
+            },),
           ],
         ),
       ),

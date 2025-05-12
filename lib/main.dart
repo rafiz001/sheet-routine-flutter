@@ -16,10 +16,10 @@ class MyApp extends StatelessWidget {
       valueListenable: isDarkNotifier,
       builder: (context, isDark, child) {
         return MaterialApp(
-          title: 'Flutter Demo',
+          title: 'Rafiz',
           theme: ThemeData(
             colorScheme: ColorScheme.fromSeed(
-              seedColor: Colors.deepOrange,
+              seedColor: Colors.teal,
               brightness: isDark ? Brightness.dark : Brightness.light,
             ),
           ),
