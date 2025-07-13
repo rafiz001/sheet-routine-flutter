@@ -1,0 +1,13 @@
+# Excluding native build files from language stats
+android/* linguist-vendored
+ios/* linguist-vendored
+windows/* linguist-vendored
+linux/* linguist-vendored
+macos/* linguist-vendored
+*.podspec linguist-vendored
+*.gradle linguist-vendored
+*.cmake linguist-vendored
+*.m linguist-vendored
+*.h linguist-vendored
+*.cpp linguist-vendored
+*.cc linguist-vendored
