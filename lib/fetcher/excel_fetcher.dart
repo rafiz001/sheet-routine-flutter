@@ -1,3 +1,4 @@
+import 'dart:math';
 
 import 'package:dio/dio.dart';
 import 'package:excel/excel.dart';
@@ -25,41 +26,43 @@ Map<String, int> parseCellId(String cellId) {
   return {'col': 0, 'row': 0};
 }
 
-Future<Response> downloadFile() async {
+Future<dynamic> downloadFile() async {
   String urlID = "1vJQVPX0-YypjwBAoiFcMNofKR91X8Zt57NAKlXrUre4";
   String url =
       "https://docs.google.com/spreadsheets/u/0/d/$urlID/export?format=xlsx";
   final dio = Dio();
   // Download the file
-  final response = await dio.get(url,options: Options(responseType: ResponseType.bytes));
-  return response;
-}
-
-Future<Excel?> parseFile(Response? response) async {
-  Excel? excel;
-
+  final response = await dio.get(
+    url,
+    options: Options(responseType: ResponseType.bytes),
+  );
   if (response != null && response.statusCode == 200) {
-    excel = Excel.decodeBytes(response.data);
+    return response.data;
   }
-  return excel;
+  return null;
 }
 
-Future<Map<String, dynamic>> loadLocal() async {
+Future<dynamic> loadLocal() async {
   Excel? excel;
-  String? filename;
-  String status = '';
-
   try {
     ByteData data = await rootBundle.load(
       'assets/Class Routine (Spring-25).xlsx',
     );
     var bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
     excel = Excel.decodeBytes(bytes);
-  } catch (e) {
-    status = e.toString();
-  }
 
-  return {"file": excel, "status": status, "filename": filename};
+    return bytes;
+  } catch (_) {
+    return null;
+  }
+}
+
+Future<Excel?> decodeFile(dynamic response) async {
+  Excel? excel;
+
+  excel = Excel.decodeBytes(response);
+
+  return excel;
 }
 
 Future<Map<String, dynamic>> readTimeRow(
@@ -94,16 +97,20 @@ Future<void> readExcelFile(Excel excel, int lastCollumn) async {
   int timeColumn = 3;
   int sectionColumn = 2;
   int semesterColumn = 1;
+  List<String> sheetNames = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+  ];
 
   Map<String, Map<String, Map<String, List<dynamic>>>> days =
       {}; //sunday,1st,A,[CSE 121,2]
-  ;
-  List<String> sheetNames = [];
 
   // Get sheet names
-  for (int k = 0; k < excel.tables.keys.length; k++) {
-    var sheetName = excel.tables.keys.elementAt(k);
-    //print(sheetName);
+  for (int k = 0; k < sheetNames.length; k++) {
+    var sheetName = sheetNames[k];
 
     Map<int, Map<int, int>> mergedHorizontal = {}; //row, col, length
     // Get merged cells information - spannedItems contains cell references like "A1:C3"
@@ -135,8 +142,9 @@ Future<void> readExcelFile(Excel excel, int lastCollumn) async {
       // Access cell
       for (int j = 0; j < lastCollumn; j++) {
         var cell = row[j];
-        if (j == semesterColumn && cell?.value.toString() == null)
+        if (j == semesterColumn && cell?.value.toString() == null) {
           newSemesterSarting = false;
+        }
         if (j >= timeColumn) {
           List<dynamic> temp = [cell?.value.toString()];
           temp.add(
@@ -159,4 +167,26 @@ Future<void> readExcelFile(Excel excel, int lastCollumn) async {
     days[sheetName] = sems;
   }
   print(days);
+}
+Future<Map<String,List<String>>> getTeacherDetails(Excel excel) async{
+  String teacher_sheet = "Information";
+  int teacher_row = 15;
+  int teacher_short_code = 1;
+  int teacher_name = 2;
+  int teacher_contact = 6;
+Map<String,List<String>> output = {};
+int i = teacher_row;
+while(true){
+  var row = excel.tables[teacher_sheet]!.rows[i];
+  if (row[teacher_short_code]?.value == null) break;
+  List<String> temp = [];
+  temp.add(row[teacher_name]?.value.toString()??"");
+  temp.add(row[teacher_contact]?.value.toString()??"");
+  output[row[teacher_short_code]?.value.toString()??""]=temp;
+
+  i++;
+}
+return output;
+
+
 }
