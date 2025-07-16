@@ -36,8 +36,11 @@ dependencies:
 #  cupertino_icons: ^1.0.8
   excel: ^4.0.6
   dio: ^5.8.0+1
-  url_launcher: ^6.3.1
+  url_launcher: ^6.3.2
   lottie: ^3.3.0
+  hive: ^4.0.0-dev.2
+  path_provider: ^2.1.5
+  isar_flutter_libs: ^4.0.0-dev.13
 
 
 dev_dependencies:

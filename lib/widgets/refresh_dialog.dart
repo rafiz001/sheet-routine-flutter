@@ -1,6 +1,5 @@
 import 'package:excel/excel.dart';
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
 import 'package:lottie/lottie.dart';
 import 'package:sheet_routine/fetcher/excel_fetcher.dart';
 
@@ -12,7 +11,7 @@ class RefreshDialog extends StatefulWidget {
 
 int _c = -1;
 bool _jobExecuted = false;
-dynamic _file;
+List<int>? _file;
 Excel? xl;
 List<String> _sheetNames = [];
 Map<String, dynamic> _timeRowData = {};
@@ -43,6 +42,7 @@ Widget _dialogElement(int val, String name, BuildContext context) {
 }
 
 class _RefreshDialogState extends State<RefreshDialog> {
+
   @override
   void initState() {
     super.initState();
@@ -62,24 +62,23 @@ class _RefreshDialogState extends State<RefreshDialog> {
     int semesterColumn = 1;
     print("c= $_c");
     if (_c == 0) {
-      // _file = await downloadFile();
-      _file = await loadLocal();
+      _file = await downloadFile();
+      // _file = await loadLocal();
       if (_file == null) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text("Download error.")));
         Navigator.pop(context);
       }
+      print("download done!");
       setState(() {
         _c++;
       });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Downloaded.")));
+
       return;
     }
     if (_c == 1) {
-      xl = await decodeFile(_file);
+     xl = await decodeFile(_file!);
       setState(() {
         _c++;
       });

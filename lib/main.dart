@@ -1,21 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+
+import 'package:path_provider/path_provider.dart';
+import 'package:sheet_routine/pages/settings.dart';
 import 'package:sheet_routine/widgets/refresh_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-void main() {
+void main() async{
   runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  final dir = await getApplicationDocumentsDirectory();
+  Hive.defaultDirectory = dir.path;
+
+}
+final settingsBox = Hive.box(name: 'settings');
+
+class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+static void restartApp(BuildContext context) {
+    context.findAncestorStateOfType<_MyAppState>()?.restartApp();
+  }
+  @override
+  State<MyApp> createState() => _MyAppState();
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
+class _MyAppState extends State<MyApp> {
+   Key key = UniqueKey();
+  void restartApp() {
+    setState(() {
+      key = UniqueKey();
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.green,
+          seedColor: getTheme(settingsBox.get("theme",defaultValue: "Green")),
           brightness: Brightness.light,
         ),
         //textTheme: const TextTheme(bodyMedium: TextStyle(fontSize: 20.0)),
@@ -23,7 +45,7 @@ class MyApp extends StatelessWidget {
       ),
       darkTheme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.greenAccent,
+          seedColor:  getTheme(settingsBox.get("theme",defaultValue: "Green")),
           brightness: Brightness.dark,
         ),
         textTheme: const TextTheme(
@@ -53,15 +75,10 @@ class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
   void _incrementCounter() {
-
-
     /* alert dialog*/
 
-    showDialog(
-      context: context,
-      builder: (context) => RefreshDialog()
-    );
-      /*
+    showDialog(context: context, builder: (context) => RefreshDialog());
+    /*
       
    */
 
@@ -79,7 +96,13 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Column(
             children: [
               DrawerHeader(child: Text("Welcome")),
-              ListTile(title: Text("Setting")),
+              ListTile(
+                title: Text("Settings"),
+                leading: Icon(Icons.settings),
+                onTap: () {Navigator.push(context, MaterialPageRoute(builder: (context) {
+                  return Settings();
+                },));},
+              ),
             ],
           ),
         ),

@@ -2,7 +2,14 @@ import 'dart:math';
 
 import 'package:dio/dio.dart';
 import 'package:excel/excel.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show ByteData, rootBundle;
+
+class cn {
+  static Excel _decodeInIsolate(dynamic bytes) {
+  return Excel.decodeBytes(bytes);
+}
+}
 
 Map<String, int> parseCellId(String cellId) {
   // Parse cell ID like "A1" to get column and row indices
@@ -26,7 +33,7 @@ Map<String, int> parseCellId(String cellId) {
   return {'col': 0, 'row': 0};
 }
 
-Future<dynamic> downloadFile() async {
+Future<List<int>?> downloadFile() async {
   String urlID = "1vJQVPX0-YypjwBAoiFcMNofKR91X8Zt57NAKlXrUre4";
   String url =
       "https://docs.google.com/spreadsheets/u/0/d/$urlID/export?format=xlsx";
@@ -42,14 +49,13 @@ Future<dynamic> downloadFile() async {
   return null;
 }
 
-Future<dynamic> loadLocal() async {
+Future<List<int>?> loadLocal() async {
   Excel? excel;
   try {
     ByteData data = await rootBundle.load(
       'assets/Class Routine (Spring-25).xlsx',
     );
     var bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
-    excel = Excel.decodeBytes(bytes);
 
     return bytes;
   } catch (_) {
@@ -57,12 +63,16 @@ Future<dynamic> loadLocal() async {
   }
 }
 
-Future<Excel?> decodeFile(dynamic response) async {
+
+Future<Excel?> decodeFile(List<int> response) async {
   Excel? excel;
 
   excel = Excel.decodeBytes(response);
 
   return excel;
+
+
+
 }
 
 Future<Map<String, dynamic>> readTimeRow(
