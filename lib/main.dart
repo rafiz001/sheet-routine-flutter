@@ -1,63 +1,73 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-
-import 'package:path_provider/path_provider.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:sheet_routine/data/hive.dart';
 import 'package:sheet_routine/pages/settings.dart';
 import 'package:sheet_routine/widgets/refresh_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-void main() async{
-  runApp(const MyApp());
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final dir = await getApplicationDocumentsDirectory();
-  Hive.defaultDirectory = dir.path;
-
+  await Hive.initFlutter();
+  await Hive.openBox('settingsBox');
+  runApp(const MyApp());
 }
-final settingsBox = Hive.box(name: 'settings');
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
-static void restartApp(BuildContext context) {
+  static void restartApp(BuildContext context) {
     context.findAncestorStateOfType<_MyAppState>()?.restartApp();
   }
+
   @override
   State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
-   Key key = UniqueKey();
+  Key key = UniqueKey();
   void restartApp() {
     setState(() {
       key = UniqueKey();
     });
   }
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: getTheme(settingsBox.get("theme",defaultValue: "Green")),
-          brightness: Brightness.light,
-        ),
-        //textTheme: const TextTheme(bodyMedium: TextStyle(fontSize: 20.0)),
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor:  getTheme(settingsBox.get("theme",defaultValue: "Green")),
-          brightness: Brightness.dark,
-        ),
-        textTheme: const TextTheme(
-          //bodyMedium: TextStyle(fontSize: 20.0),
-          //labelLarge: TextStyle(fontSize: 20),
-          //labelMedium: TextStyle(fontSize: 20),
-          //labelSmall: TextStyle(fontSize: 20),
-        ),
-        useMaterial3: true,
-      ),
-      themeMode: ThemeMode.system,
-      home: const MyHomePage(title: 'Sheet Routine'),
+    return FutureBuilder(
+      future: getThemeFromHive(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return MaterialApp(
+            home: Scaffold(body: Center(child: CircularProgressIndicator())),
+          );
+        }
+        final seedColor = snapshot.data!;
+        return MaterialApp(
+          title: 'Flutter Demo',
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: getTheme(seedColor),
+              brightness: Brightness.light,
+            ),
+            //textTheme: const TextTheme(bodyMedium: TextStyle(fontSize: 20.0)),
+            useMaterial3: true,
+          ),
+          darkTheme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: getTheme(seedColor),
+              brightness: Brightness.dark,
+            ),
+            textTheme: const TextTheme(
+              //bodyMedium: TextStyle(fontSize: 20.0),
+              //labelLarge: TextStyle(fontSize: 20),
+              //labelMedium: TextStyle(fontSize: 20),
+              //labelSmall: TextStyle(fontSize: 20),
+            ),
+            useMaterial3: true,
+          ),
+          themeMode: ThemeMode.system,
+          home: const MyHomePage(title: 'Sheet Routine'),
+        );
+      },
     );
   }
 }
@@ -99,9 +109,16 @@ class _MyHomePageState extends State<MyHomePage> {
               ListTile(
                 title: Text("Settings"),
                 leading: Icon(Icons.settings),
-                onTap: () {Navigator.push(context, MaterialPageRoute(builder: (context) {
-                  return Settings();
-                },));},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return Settings();
+                      },
+                    ),
+                  );
+                },
               ),
             ],
           ),
