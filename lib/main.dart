@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sheet_routine/data/hive.dart';
+import 'package:sheet_routine/pages/google_sheet_config.dart';
 import 'package:sheet_routine/pages/settings.dart';
 import 'package:sheet_routine/widgets/refresh_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -8,7 +9,8 @@ import 'package:url_launcher/url_launcher.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
-  await Hive.openBox('settingsBox');
+  await Hive.openBox('settings');
+  await Hive.openBox('routine');
   runApp(const MyApp());
 }
 
@@ -22,60 +24,101 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
+bool _loading = true;
+String? _seedColor;
+String _title = routineConfig["routine_name"].toString();
+DateTime? _syncAt;
+String? _sheetId = routineConfig["sheet_ID"].toString();
+
 class _MyAppState extends State<MyApp> {
+   Future<void> _restartSequence() async {
+    // Close Hive boxes
+    await Hive.close();
+    
+    // Reinitialize Hive
+    await Hive.initFlutter();
+    await Hive.openBox('settings');
+    await Hive.openBox('routine');
+    
+    // Reload data
+    await _loadDefaultValue();
+  }
+
   Key key = UniqueKey();
   void restartApp() {
+    _restartSequence().then((value) {
+      
     setState(() {
       key = UniqueKey();
     });
+    });
   }
+  
+  @override
+  void initState() {
+    super.initState();
+    _loadDefaultValue();
+  }
+ 
+
+  Future<void> _loadDefaultValue() async {
+    final seedC = await getValueFromHive("settings", "theme", "Green");
+    final config = await getValueFromHive("settings", "config", null);
+    final syncAt = await getValueFromHive("routine", "syncAt", null);
+    setState(() {
+      _seedColor = seedC;
+      if (config != null) {
+        _title = config["routine_name"];
+        _sheetId = config["sheet_ID"];
+      }
+      if (syncAt != null) {
+        _syncAt = syncAt;
+      }
+      _loading = false;
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: getThemeFromHive(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return MaterialApp(
-            home: Scaffold(body: Center(child: CircularProgressIndicator())),
-          );
-        }
-        final seedColor = snapshot.data!;
-        return MaterialApp(
-          title: 'Flutter Demo',
-          theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: getTheme(seedColor),
-              brightness: Brightness.light,
-            ),
-            //textTheme: const TextTheme(bodyMedium: TextStyle(fontSize: 20.0)),
-            useMaterial3: true,
-          ),
-          darkTheme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: getTheme(seedColor),
-              brightness: Brightness.dark,
-            ),
-            textTheme: const TextTheme(
-              //bodyMedium: TextStyle(fontSize: 20.0),
-              //labelLarge: TextStyle(fontSize: 20),
-              //labelMedium: TextStyle(fontSize: 20),
-              //labelSmall: TextStyle(fontSize: 20),
-            ),
-            useMaterial3: true,
-          ),
-          themeMode: ThemeMode.system,
-          home: const MyHomePage(title: 'Sheet Routine'),
-        );
-      },
+    if (_loading) return CircularProgressIndicator();
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: getTheme(_seedColor ?? "Green"),
+          brightness: Brightness.light,
+        ),
+        //textTheme: const TextTheme(bodyMedium: TextStyle(fontSize: 20.0)),
+        useMaterial3: true,
+      ),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: getTheme(_seedColor ?? "Green"),
+          brightness: Brightness.dark,
+        ),
+        textTheme: const TextTheme(
+          //bodyMedium: TextStyle(fontSize: 20.0),
+          //labelLarge: TextStyle(fontSize: 20),
+          //labelMedium: TextStyle(fontSize: 20),
+          //labelSmall: TextStyle(fontSize: 20),
+        ),
+        useMaterial3: true,
+      ),
+      themeMode: ThemeMode.system,
+      home:  MyHomePage(title: _title, syncAt: _syncAt, sheetID: _sheetId),
+    
+      
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+  const MyHomePage({super.key, required this.title, this.syncAt, this.sheetID});
 
-  final String title;
+  final String? title;
+  final String? sheetID;
+  final DateTime? syncAt;
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -84,13 +127,8 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
-  void _incrementCounter() {
-    /* alert dialog*/
-
+  void _refresher() {
     showDialog(context: context, builder: (context) => RefreshDialog());
-    /*
-      
-   */
 
     setState(() {
       _counter++;
@@ -125,7 +163,18 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         appBar: AppBar(
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: Text(widget.title),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(widget.title ?? ""),
+              Text(
+                widget.syncAt != null
+                    ? "Sync At: ${widget.syncAt!.hour}:${widget.syncAt!.minute} ${widget.syncAt!.day}/${widget.syncAt!.month}"
+                    : "[Sync Please]",
+                style: TextStyle(fontSize: 12),
+              ),
+            ],
+          ),
           actions: [
             IconButton(
               icon: Icon(Icons.public),
@@ -159,9 +208,9 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
 
         floatingActionButton: FloatingActionButton(
-          onPressed: _incrementCounter,
-          tooltip: 'Increment',
-          child: const Icon(Icons.add),
+          onPressed: _refresher,
+          tooltip: 'Sync',
+          child: const Icon(Icons.refresh),
         ),
       ),
     );

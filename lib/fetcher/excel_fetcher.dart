@@ -1,14 +1,20 @@
-import 'dart:math';
 
 import 'package:dio/dio.dart';
 import 'package:excel/excel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show ByteData, rootBundle;
+import 'package:sheet_routine/data/hive.dart';
 
 class cn {
   static Excel _decodeInIsolate(dynamic bytes) {
-  return Excel.decodeBytes(bytes);
+    return Excel.decodeBytes(bytes);
+  }
 }
+
+dynamic checkAndGet(dynamic configFromDB, String key, dynamic defaultValue) {
+  return (configFromDB is Map && configFromDB.containsKey(key))
+      ? configFromDB[key]
+      : defaultValue;
 }
 
 Map<String, int> parseCellId(String cellId) {
@@ -33,8 +39,12 @@ Map<String, int> parseCellId(String cellId) {
   return {'col': 0, 'row': 0};
 }
 
-Future<List<int>?> downloadFile() async {
-  String urlID = "1ZenZW0eYq4Na2sgDYQDjn9eRIX8r6S-cxPEtM97yAj4";///1vJQVPX0-YypjwBAoiFcMNofKR91X8Zt57NAKlXrUre4
+Future<List<int>?> downloadFile(dynamic configFromDB) async {
+  String urlID = checkAndGet(
+    configFromDB,
+    "sheet_ID",
+    "1ZenZW0eYq4Na2sgDYQDjn9eRIX8r6S-cxPEtM97yAj4",
+  ); //1vJQVPX0-YypjwBAoiFcMNofKR91X8Zt57NAKlXrUre4
   String url =
       "https://docs.google.com/spreadsheets/u/0/d/$urlID/export?format=xlsx";
   final dio = Dio();
@@ -43,14 +53,14 @@ Future<List<int>?> downloadFile() async {
     url,
     options: Options(responseType: ResponseType.bytes),
   );
-  if (response != null && response.statusCode == 200) {
+  if (response.statusCode == 200) {
     return response.data;
   }
   return null;
 }
 
 Future<List<int>?> loadLocal() async {
-  Excel? excel;
+
   try {
     ByteData data = await rootBundle.load(
       'assets/Class Routine (Spring-25).xlsx',
@@ -63,16 +73,12 @@ Future<List<int>?> loadLocal() async {
   }
 }
 
-
 Future<Excel?> decodeFile(List<int> response) async {
   Excel? excel;
 
   excel = Excel.decodeBytes(response);
 
   return excel;
-
-
-
 }
 
 Future<Map<String, dynamic>> readTimeRow(
@@ -95,6 +101,7 @@ Future<Map<String, dynamic>> readTimeRow(
     }
   }
   int lastCollumn = timeColumn + i - 1;
+  await setValueToHive("routine", "timeData", timeData);
   return {"timeRow": timeData, "lastCollumn": lastCollumn};
 }
 
@@ -102,18 +109,28 @@ Future<List<String>> getSheetNames(Excel excel) async {
   return excel.tables.keys.toList();
 }
 
-Future<void> readExcelFile(Excel excel, int lastCollumn) async {
-  int timeRow = 1;
-  int timeColumn = 3;
-  int sectionColumn = 2;
-  int semesterColumn = 1;
-  List<String> sheetNames = [
+Future<void> readExcelFile(
+  Excel excel,
+  int lastCollumn,
+  dynamic configFromDB,
+) async {
+  int timeRow = checkAndGet(configFromDB, "timeRow", 1);
+
+  int timeColumn = checkAndGet(configFromDB, "timeColumn", 3);
+
+  int sectionColumn = checkAndGet(configFromDB, "sectionColumn", 2);
+
+  int semesterColumn = checkAndGet(configFromDB, "semesterColumn", 1);
+
+  List<dynamic> temp = checkAndGet(configFromDB, "sheetNames", [
+    "Saturday",
     "Sunday",
     "Monday",
     "Tuesday",
     "Wednesday",
     "Thursday",
-  ];
+  ]);
+  List<String> sheetNames = List<String>.from(temp);
 
   Map<String, Map<String, Map<String, List<dynamic>>>> days =
       {}; //sunday,1st,A,[CSE 121,2]
@@ -121,7 +138,9 @@ Future<void> readExcelFile(Excel excel, int lastCollumn) async {
   // Get sheet names
   for (int k = 0; k < sheetNames.length; k++) {
     var sheetName = sheetNames[k];
-
+if (kDebugMode) {
+  print(sheetName);
+}
     Map<int, Map<int, int>> mergedHorizontal = {}; //row, col, length
     // Get merged cells information - spannedItems contains cell references like "A1:C3"
     List<String> mergedCells = excel.tables[sheetName]!.spannedItems;
@@ -148,7 +167,7 @@ Future<void> readExcelFile(Excel excel, int lastCollumn) async {
       bool newSemesterSarting = true;
       List<dynamic> sub = [];
       Map<String, List<dynamic>> sec = {};
-      if (row[sectionColumn]?.value == null) break;
+      if (row[sectionColumn]?.value == null && excel.tables[sheetName]!.rows[i+1][sectionColumn]?.value == null) break;
       // Access cell
       for (int j = 0; j < lastCollumn; j++) {
         var cell = row[j];
@@ -176,27 +195,35 @@ Future<void> readExcelFile(Excel excel, int lastCollumn) async {
     }
     days[sheetName] = sems;
   }
-  print(days);
+  await setValueToHive("routine", "days", days);
+  await setValueToHive("routine", "syncAt", DateTime.now());
+
+  if (kDebugMode) {
+    print(days);
+  }
 }
-Future<Map<String,List<String>>> getTeacherDetails(Excel excel) async{
-  String teacher_sheet = "Information";
-  int teacher_row = 15;
-  int teacher_short_code = 1;
-  int teacher_name = 2;
-  int teacher_contact = 6;
-Map<String,List<String>> output = {};
-int i = teacher_row;
-while(true){
-  var row = excel.tables[teacher_sheet]!.rows[i];
-  if (row[teacher_short_code]?.value == null) break;
-  List<String> temp = [];
-  temp.add(row[teacher_name]?.value.toString()??"");
-  temp.add(row[teacher_contact]?.value.toString()??"");
-  output[row[teacher_short_code]?.value.toString()??""]=temp;
 
-  i++;
-}
-return output;
+Future<Map<String, List<String>>> getTeacherDetails(
+  Excel excel,
+  dynamic configFromDB,
+) async {
+  String teacher_sheet = checkAndGet(configFromDB, "teacher_sheet", "Information");
+  int teacher_row = checkAndGet(configFromDB, "teacher_row", 15);
+  int teacher_short_code = checkAndGet(configFromDB, "teacher_short_code", 1);
+  int teacher_name = checkAndGet(configFromDB, "teacher_name", 2);
+  int teacher_contact = checkAndGet(configFromDB, "teacher_contact", 6);
+  Map<String, List<String>> output = {};
+  int i = teacher_row;
+  while (true) {
+    var row = excel.tables[teacher_sheet]!.rows[i];
+    if (row[teacher_short_code]?.value == null) break;
+    List<String> temp = [];
+    temp.add(row[teacher_name]?.value.toString() ?? "");
+    temp.add(row[teacher_contact]?.value.toString() ?? "");
+    output[row[teacher_short_code]?.value.toString() ?? ""] = temp;
 
-
+    i++;
+  }
+  await setValueToHive("routine", "teacher", output);
+  return output;
 }

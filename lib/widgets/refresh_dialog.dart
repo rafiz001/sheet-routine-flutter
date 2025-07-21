@@ -1,7 +1,10 @@
 import 'package:excel/excel.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:sheet_routine/data/hive.dart';
 import 'package:sheet_routine/fetcher/excel_fetcher.dart';
+import 'package:sheet_routine/main.dart';
 
 class RefreshDialog extends StatefulWidget {
   RefreshDialog({Key? key}) : super(key: key);
@@ -10,45 +13,40 @@ class RefreshDialog extends StatefulWidget {
 }
 
 int _c = -1;
-bool _jobExecuted = false;
 List<int>? _file;
 Excel? xl;
-List<String> _sheetNames = [];
+// bool _jobExecuted = false;
+// List<String> _sheetNames = [];
 Map<String, dynamic> _timeRowData = {};
 List<String> _msg = [
   "",
-  "Downloading...",
-  "Decoding...",
-  "Reading Time Row...",
-  "Reading full routine...",
-  "Reading teacher details...",
+  "Downloaded",
+  "Decoded",
+  "Time Row Read Done...",
+  "Reading Full Routine Done...",
+  "Reading Teacher Details Done...",
 ];
-
+/*
 Widget _dialogElement(int val, String name, BuildContext context) {
   return Row(
     children: [
-      /*_c > val
-          ? Icon(
-              Icons.check,
-              color: Theme.of(context).colorScheme.primary,
-              size: 40,
-            )
-          :*/
+    
       CircularProgressIndicator(value: (_c.toDouble()) / 5),
       Padding(padding: EdgeInsets.only(right: 15)),
       Text(name),
     ],
   );
-}
+}*/
 
 class _RefreshDialogState extends State<RefreshDialog> {
-
   @override
   void initState() {
     super.initState();
     // Execute functions after the first frame is rendered
     WidgetsBinding.instance.addPostFrameCallback((duration) {
-      print("callback $_c");
+      if (kDebugMode) {
+        print("callback $_c");
+      }
       _c == -1 ? _c = 0 : print("c not equal -1 it is: $_c");
       _executer();
     });
@@ -56,58 +54,82 @@ class _RefreshDialogState extends State<RefreshDialog> {
 
   _executer() async {
     // if(_jobExecuted) return;
-    int timeRow = 1;
-    int timeColumn = 3;
-    int sectionColumn = 2;
-    int semesterColumn = 1;
-    print("c= $_c");
-    if (_c == 0) {
-      _file = await downloadFile();
-      // _file = await loadLocal();
-      if (_file == null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Download error.")));
-        Navigator.pop(context);
-      }
-      print("download done!");
-      setState(() {
-        _c++;
-      });
+    var config = await getValueFromHive("settings", "config", null);
 
-      return;
+    int timeRow = (config is Map && config.containsKey("timeRow"))
+        ? config["timeRow"]
+        : 1;
+    int timeColumn = (config is Map && config.containsKey("timeColumn"))
+        ? config["timeColumn"]
+        : 3;
+
+    if (kDebugMode) {
+      print("c= $_c");
+    }
+    if (_c == 0) {
+      // _file = await loadLocal();
+      downloadFile(config).then((value) {
+        _file = value;
+        if (_file == null) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Download error.")));
+          Navigator.pop(context);
+        }
+
+        if (kDebugMode) {
+          print("download done!");
+        }
+        setState(() {
+          _c=1;
+        });
+
+        return;
+      });
     }
     if (_c == 1) {
-     xl = await decodeFile(_file!);
-      setState(() {
-        _c++;
+      decodeFile(_file!).then((value) {
+        xl = value;
+        if (xl != null) {
+        setState(() {
+          _c=2;
+        });
+          return;
+        }
       });
-
-      return;
     }
 
     if (_c == 2) {
-      _timeRowData = await readTimeRow(xl!, timeColumn, timeRow);
-      setState(() {
-        _c++;
+      readTimeRow(xl!, timeColumn, timeRow).then((value) {
+        _timeRowData = value;
+        if (_timeRowData["lastCollumn"] != null) {
+        setState(() {
+          _c=3;
+        });
+          return;
+        }
       });
-      return;
     }
     if (_c == 3) {
-      await readExcelFile(xl!, _timeRowData["lastCollumn"]);
-      setState(() {
-        _c++;
+      readExcelFile(xl!, _timeRowData["lastCollumn"], config).then((value) {
+        setState(() {
+          _c=4;
+        });
+        return;
       });
-      return;
     }
     if (_c == 4) {
-      var teachers = await getTeacherDetails(xl!);
-      print(teachers);
-      setState(() {
-        _c = -1;
-        //_jobExecuted = true;
+      getTeacherDetails(xl!, config).then((teachers) {
+        if (kDebugMode) {
+          print(teachers);
+        }
+        setState(() {
+          _c = -1;
+        });
+        MyApp.restartApp(context);
+        Navigator.pop(context);
+        return;
       });
-      return;
     }
   }
 
