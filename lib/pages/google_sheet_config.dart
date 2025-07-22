@@ -5,21 +5,28 @@ import 'package:flutter/material.dart';
 import 'package:sheet_routine/data/hive.dart';
 import 'package:sheet_routine/widgets/refresh_dialog.dart';
 
-  
-  const routineConfig = {
-    "routine_name": "Summer - 2025",
-    "sheet_ID": "1ZenZW0eYq4Na2sgDYQDjn9eRIX8r6S-cxPEtM97yAj4",
-    "timeColumn": 3,
-    "timeRow": 1,
-    "sectionColumn": 2,
-    "semesterColumn": 1,
-    "sheetNames": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"],
-    "teacher_sheet": "Information",
-    "teacher_row": 15,
-    "teacher_short_code": 1,
-    "teacher_name": 2,
-    "teacher_contact": 6,
-  };
+const routineConfig = {
+  "routine_name": "Summer - 2025",
+  "sheet_ID": "1ZenZW0eYq4Na2sgDYQDjn9eRIX8r6S-cxPEtM97yAj4",
+  "timeColumn": 3,
+  "timeRow": 1,
+  "sectionColumn": 2,
+  "semesterColumn": 1,
+  "sheetNames": [
+    "Saturday",
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+  ],
+  "teacher_sheet": "Information",
+  "teacher_row": 15,
+  "teacher_short_code": 1,
+  "teacher_name": 2,
+  "teacher_contact": 6,
+};
+
 class GoogleSheetConfig extends StatefulWidget {
   GoogleSheetConfig({Key? key}) : super(key: key);
 

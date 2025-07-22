@@ -74,14 +74,14 @@ class _RefreshDialogState extends State<RefreshDialog> {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text("Download error.")));
-          Navigator.pop(context);
+          // Navigator.pop(context);
+          return;
         }
-
         if (kDebugMode) {
           print("download done!");
         }
         setState(() {
-          _c=1;
+          _c = 1;
         });
 
         return;
@@ -91,9 +91,9 @@ class _RefreshDialogState extends State<RefreshDialog> {
       decodeFile(_file!).then((value) {
         xl = value;
         if (xl != null) {
-        setState(() {
-          _c=2;
-        });
+          setState(() {
+            _c = 2;
+          });
           return;
         }
       });
@@ -103,9 +103,9 @@ class _RefreshDialogState extends State<RefreshDialog> {
       readTimeRow(xl!, timeColumn, timeRow).then((value) {
         _timeRowData = value;
         if (_timeRowData["lastCollumn"] != null) {
-        setState(() {
-          _c=3;
-        });
+          setState(() {
+            _c = 3;
+          });
           return;
         }
       });
@@ -113,7 +113,7 @@ class _RefreshDialogState extends State<RefreshDialog> {
     if (_c == 3) {
       readExcelFile(xl!, _timeRowData["lastCollumn"], config).then((value) {
         setState(() {
-          _c=4;
+          _c = 4;
         });
         return;
       });
@@ -176,12 +176,7 @@ class _RefreshDialogState extends State<RefreshDialog> {
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () {
-              _executer();
-            },
-            child: Text("Execute"),
-          ),
+          
           TextButton(
             onPressed: () {
               _c = -1;

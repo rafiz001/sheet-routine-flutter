@@ -4,6 +4,7 @@ import 'package:excel/excel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show ByteData, rootBundle;
 import 'package:sheet_routine/data/hive.dart';
+import 'package:sheet_routine/pages/google_sheet_config.dart';
 
 class cn {
   static Excel _decodeInIsolate(dynamic bytes) {
@@ -48,6 +49,7 @@ Future<List<int>?> downloadFile(dynamic configFromDB) async {
   String url =
       "https://docs.google.com/spreadsheets/u/0/d/$urlID/export?format=xlsx";
   final dio = Dio();
+  try{
   // Download the file
   final response = await dio.get(
     url,
@@ -56,7 +58,9 @@ Future<List<int>?> downloadFile(dynamic configFromDB) async {
   if (response.statusCode == 200) {
     return response.data;
   }
-  return null;
+  }
+  catch(_) {return null;}
+  
 }
 
 Future<List<int>?> loadLocal() async {
@@ -122,14 +126,7 @@ Future<void> readExcelFile(
 
   int semesterColumn = checkAndGet(configFromDB, "semesterColumn", 1);
 
-  List<dynamic> temp = checkAndGet(configFromDB, "sheetNames", [
-    "Saturday",
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-  ]);
+  List<dynamic> temp = checkAndGet(configFromDB, "sheetNames", routineConfig["sheetNames"] as List<String>);
   List<String> sheetNames = List<String>.from(temp);
 
   Map<String, Map<String, Map<String, List<dynamic>>>> days =
