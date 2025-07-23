@@ -128,7 +128,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     if (_loading) return CircularProgressIndicator();
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Sheet Routine',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: getTheme(_seedColor ?? "Green"),
