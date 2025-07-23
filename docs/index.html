@@ -31,8 +31,63 @@
 
   <title>sheet_routine</title>
   <link rel="manifest" href="manifest.json">
+  <style>
+        .loading {
+          display: flex;
+          flex-flow: column;
+          justify-content: center;
+          align-items: center;
+          margin: 0;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          -ms-transform: translate(-50%, -50%);
+          transform: translate(-50%, -50%);
+        }
+
+        .loader {
+          border: 8px solid #f3f3f3;
+          border-radius: 50%;
+          border-top: 8px solid #00AD87;
+          border-right: 8px solid #C30E48;
+          border-bottom: 8px solid #00AD87;
+          border-left: 8px solid #C30E48;
+          width: 60px !important;
+          height: 60px !important;
+          -webkit-animation: spin 2s linear infinite;
+          animation: spin 2s linear infinite;
+        }
+
+        @-webkit-keyframes spin {
+          0% {
+            -webkit-transform: rotate(0deg);
+          }
+          100% {
+            -webkit-transform: rotate(360deg);
+          }
+        }
+
+        @keyframes spin {
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
+        }
+  </style>
 </head>
 <body>
+  <div class="loading">
+      <div class="loader"></div>
+  </div>
+
+  <script>
+      window.addEventListener("flutter-first-frame", function() {
+          var element = document.getElementsByClassName("loading");
+          element[0].parentNode.removeChild(element[0]);
+      });
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
