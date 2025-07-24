@@ -7,7 +7,7 @@ import 'package:sheet_routine/pages/settings.dart';
 import 'package:sheet_routine/widgets/refresh_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-const appVersion = "v2.0.0";
+const appVersion = "v2.0.1";
 
 extension IndexedIterable<E> on Iterable<E> {
   /// Maps each element and its index to a new value
@@ -218,7 +218,90 @@ class _MyHomePageState extends State<MyHomePage> {
     return list;
   }
 
+  List<Widget> dayWidgets(String value, sem, sec) {
+    try {
+      return (List<dynamic>.of(_days[value]![sem]![sec]!))
+          .asMap()
+          .entries
+          .where((element) {
+            return (element.value[0] != "null" && element.value[0] != null);
+          })
+          .map(
+            (entry) => Column(
+              children: [
+                Divider(color: Theme.of(context).colorScheme.inverseSurface),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    entry.value[1] == 1
+                        ? Text(_timeData[entry.key])
+                        : Column(
+                            children: [
+                              Text(_timeData[entry.key]),
+                              Text(_timeData[entry.key + 1]),
+                            ],
+                          ),
+                    InkWell(
+                      onTap: () {
+                        final raw = entry.value[0] as String;
+                        final courseCode = raw
+                            .split("[")[0]
+                            .trim()
+                            .replaceAll(RegExp(r'-'), " ");
+                        final courseTitle = courses[courseCode] ?? courseCode;
+                        final teacherCode = RegExp(r'\[(.*?)\]')
+                            .allMatches(raw)
+                            .map((match) => match.group(1)!)
+                            .toList();
+
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              title: Text(courseTitle),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text("Raw: ${entry.value[0]}"),
+                                  Divider(),
+                                  Text("Teachers:"),
+                                  ...(teacherCode
+                                      .map(
+                                        (elem) => Text(
+                                          _teacher[elem] != null
+                                              ? _teacher[elem][0]
+                                              : elem,
+                                        ),
+                                      )
+                                      .toList()),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                      child: Text(entry.value[0] ?? " "),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          )
+          .toList();
+    } catch (_) {
+      return [
+        Padding(padding: EdgeInsetsGeometry.only(bottom: 5)),
+        Text("There is error!"),
+        Padding(padding: EdgeInsetsGeometry.only(bottom: 5)),
+      ];
+    }
+  }
+
   Widget aTab(String sem, sec) {
+    
+    
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -235,90 +318,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     color: Theme.of(context).colorScheme.inversePrimary,
                     borderRadius: BorderRadius.circular(5),
                   ),
-                  child: Column(
-                    children: [
-                      Text(value),
-                      ...((List<dynamic>.of(_days[value]![sem]![sec]!))
-                          .asMap()
-                          .entries
-                          .where((element) {
-                            return (element.value[0] != "null" &&
-                                element.value[0] != null);
-                          })
-                          .map(
-                            (entry) => Column(
-                              children: [
-                                Divider(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.inverseSurface,
-                                ),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    entry.value[1] == 1
-                                        ? Text(_timeData[entry.key])
-                                        : Column(
-                                            children: [
-                                              Text(_timeData[entry.key]),
-                                              Text(_timeData[entry.key + 1]),
-                                            ],
-                                          ),
-                                    InkWell(
-                                      onTap: () {
-                                        final raw = entry.value[0] as String;
-                                        final courseCode = raw
-                                            .split("[")[0]
-                                            .trim()
-                                            .replaceAll(RegExp(r'-'), " ");
-                                        final courseTitle =
-                                            courses[courseCode] ?? courseCode;
-                                        final teacherCode = RegExp(r'\[(.*?)\]')
-                                            .allMatches(raw)
-                                            .map((match) => match.group(1)!)
-                                            .toList();
-
-                                        showDialog(
-                                          context: context,
-                                          builder: (context) {
-                                            return AlertDialog(
-                                              title: Text(courseTitle),
-                                              content: Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    "Raw: ${entry.value[0]}",
-                                                  ),
-                                                  Divider(),
-                                                  Text("Teachers:"),
-                                                  ...(teacherCode
-                                                      .map(
-                                                        (elem) => Text(
-                                                          _teacher[elem] != null
-                                                              ? _teacher[elem][0]
-                                                              : elem,
-                                                        ),
-                                                      )
-                                                      .toList()),
-                                                ],
-                                              ),
-                                            );
-                                          },
-                                        );
-                                      },
-                                      child: Text(entry.value[0] ?? " "),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          )
-                          .toList()),
-                    ],
-                  ),
+                  child: Column(children: [Text(value), ...(dayWidgets(value, sem, sec))]),
                 ),
               )
               .toList()),
@@ -350,7 +350,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-   
     return DefaultTabController(
       length: getTabCout(),
       child: Scaffold(
@@ -393,26 +392,26 @@ class _MyHomePageState extends State<MyHomePage> {
               ListTile(
                 title: Text("Telegram"),
                 leading: Icon(Icons.telegram_outlined),
-                onTap: () {launchUrl(
-                  Uri.parse(
-                    "https://t.me/sheet_routine",
-                  ),
-                );},
+                onTap: () {
+                  launchUrl(Uri.parse("https://t.me/sheet_routine"));
+                },
               ),
               ListTile(
                 title: Text("Source Code"),
                 leading: Icon(Icons.code),
-                onTap: () {launchUrl(
-                  Uri.parse(
-                    "https://github.com/rafiz001/sheet-routine-flutter",
-                  ),
-                );},
-              ),/*
+                onTap: () {
+                  launchUrl(
+                    Uri.parse(
+                      "https://github.com/rafiz001/sheet-routine-flutter",
+                    ),
+                  );
+                },
+              ) /*
               ListTile(
                 title: Text("Delete Databases"),
                 leading: Icon(Icons.code),
                 onTap: () {Hive.deleteFromDisk();},
-              ),*/
+              ),*/,
             ],
           ),
         ),
