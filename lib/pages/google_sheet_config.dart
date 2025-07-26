@@ -58,7 +58,7 @@ class _GoogleSheetConfigState extends State<GoogleSheetConfig> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Google Sheet Config"),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer
       ),
       body: SingleChildScrollView(
         child: Column(

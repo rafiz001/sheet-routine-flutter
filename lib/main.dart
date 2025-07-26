@@ -1,3 +1,4 @@
+import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sheet_routine/data/hive.dart';
@@ -5,9 +6,10 @@ import 'package:sheet_routine/data/courses.dart';
 import 'package:sheet_routine/pages/google_sheet_config.dart';
 import 'package:sheet_routine/pages/settings.dart';
 import 'package:sheet_routine/widgets/refresh_dialog.dart';
+import 'package:timeago_flutter/timeago_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-const appVersion = "v2.0.1";
+const appVersion = "v2.0.2";
 
 extension IndexedIterable<E> on Iterable<E> {
   /// Maps each element and its index to a new value
@@ -57,8 +59,8 @@ Map<String, dynamic> _teacher = {};
 class _MyAppState extends State<MyApp> {
   Future<void> _restartSequence() async {
     // Close Hive boxes
-    await Hive.close();
 
+    //await Hive.close();
     // Reinitialize Hive
     await Hive.initFlutter();
     await Hive.openBox('settings');
@@ -129,19 +131,16 @@ class _MyAppState extends State<MyApp> {
     if (_loading) return CircularProgressIndicator();
     return MaterialApp(
       title: 'Sheet Routine',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: getTheme(_seedColor ?? "Green"),
-          brightness: Brightness.light,
-        ),
+      theme: FlexThemeData.light(
+        scheme: getTheme(_seedColor ?? "Green"),
+
         //textTheme: const TextTheme(bodyMedium: TextStyle(fontSize: 20.0)),
         useMaterial3: true,
       ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: getTheme(_seedColor ?? "Green"),
-          brightness: Brightness.dark,
-        ),
+      darkTheme: FlexThemeData.dark(
+        // scheme: FlexScheme.blackWhite,
+        scheme: getTheme(_seedColor ?? "Green"),
+
         textTheme: const TextTheme(
           //bodyMedium: TextStyle(fontSize: 20.0),
           //labelLarge: TextStyle(fontSize: 20),
@@ -230,6 +229,7 @@ class _MyHomePageState extends State<MyHomePage> {
             (entry) => Column(
               children: [
                 Divider(color: Theme.of(context).colorScheme.inverseSurface),
+                Padding(padding: EdgeInsetsGeometry.only(bottom: 10)),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -285,6 +285,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                   ],
                 ),
+                Padding(padding: EdgeInsetsGeometry.only(bottom: 10))
               ],
             ),
           )
@@ -299,8 +300,17 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget aTab(String sem, sec) {
-    
-    
+    final DateTime now = DateTime.now();
+    final List<String> days = [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+    ];
+    String dayName = days[now.weekday % 7];
 
     return SingleChildScrollView(
       child: Column(
@@ -312,13 +322,29 @@ class _MyHomePageState extends State<MyHomePage> {
                   alignment: Alignment.center,
                   width: double.infinity,
                   margin: EdgeInsets.all(10),
-                  padding: EdgeInsets.all(10),
+                  padding: EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     shape: BoxShape.rectangle,
-                    color: Theme.of(context).colorScheme.inversePrimary,
+                    color: Theme.of(context).colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(5),
                   ),
-                  child: Column(children: [Text(value), ...(dayWidgets(value, sem, sec))]),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          dayName == value
+                              ? Icon(Icons.check)
+                              : Padding(
+                                  padding: EdgeInsetsGeometry.only(right: 0),
+                                ),
+                          Padding(padding: EdgeInsetsGeometry.only(right: 10)),
+                          Text(value, style: TextStyle(fontSize: 20)),
+                        ],
+                      ),
+                      ...(dayWidgets(value, sem, sec)),
+                    ],
+                  ),
                 ),
               )
               .toList()),
@@ -416,17 +442,26 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
         appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(widget.title ?? ""),
-              Text(
-                widget.syncAt != null
-                    ? "Sync At: ${widget.syncAt!.hour}:${widget.syncAt!.minute} ${widget.syncAt!.day}/${widget.syncAt!.month}"
-                    : "[Sync Please]",
-                style: TextStyle(fontSize: 12),
-              ),
+              widget.syncAt != null
+                  ? Timeago(
+                      builder: (context, value) => Text(
+                        "Synced: $value",
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      date: widget.syncAt!,
+                    )
+                  : Text("[Sync Please]", style: TextStyle(fontSize: 12)),
+              // Text(
+              //   widget.syncAt != null
+              //       ? "Sync At: ${widget.syncAt!.hour}:${widget.syncAt!.minute} ${widget.syncAt!.day}/${widget.syncAt!.month}"
+              //       : "[Sync Please]",
+              //   style: TextStyle(fontSize: 12),
+              // ),
             ],
           ),
           actions: [
@@ -449,6 +484,7 @@ class _MyHomePageState extends State<MyHomePage> {
         body: TabBarView(children: getTabs()),
 
         floatingActionButton: FloatingActionButton(
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           onPressed: _refresher,
           tooltip: 'Sync',
           child: const Icon(Icons.refresh),

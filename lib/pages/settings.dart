@@ -2,20 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:sheet_routine/data/hive.dart';
 import 'package:sheet_routine/main.dart';
 import 'package:sheet_routine/pages/google_sheet_config.dart';
+import 'package:flex_color_scheme/flex_color_scheme.dart';
 
-Map<String, Color> themes = {
-
-  "Green": Colors.green,
-  "Blue": Colors.blue,
-  "Teal": Colors.teal,
-  "Cayan": Colors.cyan,
-  "Red": Colors.red,
-  "Orange": Colors.orange,
-  "Deep Orange": Colors.deepOrange,
-  "Pink": Colors.pink,
+Map<String, FlexScheme> themes = {
+  "Black": FlexScheme.blackWhite,
+  "Green": FlexScheme.greenM3,
+  "Blue": FlexScheme.blueM3,
+  "Teal": FlexScheme.tealM3,
+  "Cayan": FlexScheme.cyanM3,
+  "Red": FlexScheme.redM3,
+  "Orange": FlexScheme.orangeM3,
+  "Deep Orange": FlexScheme.deepOrangeM3,
+  "Pink": FlexScheme.pinkM3,
 };
-Color getTheme(String name) {
-  return themes[name] ?? Colors.green;
+FlexScheme getTheme(String name) {
+  return themes[name] ?? FlexScheme.greenM3;
 }
 
 class Settings extends StatefulWidget {
@@ -122,7 +123,7 @@ class _SettingsState extends State<Settings> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Settings"),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -355,7 +356,7 @@ class _SettingsState extends State<Settings> {
                     selectedTheme = value;
                   });
                 },
-                icon: Icon(Icons.arrow_downward, color: themes[selectedTheme]),
+                // icon: Icon(Icons.arrow_downward, color: themes[selectedTheme]),
                 underline: Container(),
                 padding: EdgeInsets.all(8),
               ),

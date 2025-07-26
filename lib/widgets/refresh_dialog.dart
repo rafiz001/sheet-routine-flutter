@@ -6,6 +6,10 @@ import 'package:sheet_routine/data/hive.dart';
 import 'package:sheet_routine/fetcher/excel_fetcher.dart';
 import 'package:sheet_routine/main.dart';
 
+Excel parseExcelFile(List<int> _bytes) {
+  return Excel.decodeBytes(_bytes);
+}
+
 class RefreshDialog extends StatefulWidget {
   RefreshDialog({Key? key}) : super(key: key);
   @override
@@ -19,12 +23,12 @@ Excel? xl;
 // List<String> _sheetNames = [];
 Map<String, dynamic> _timeRowData = {};
 List<String> _msg = [
+  "Downloading",
+  "Decoding",
+  "Reading Time Row",
+  "Reading Routine Cells",
+  "Reading Teacher Details",
   "",
-  "Downloaded",
-  "Decoded",
-  "Time Row Read Done...",
-  "Reading Full Routine Done...",
-  "Reading Teacher Details Done...",
 ];
 /*
 Widget _dialogElement(int val, String name, BuildContext context) {
@@ -88,7 +92,8 @@ class _RefreshDialogState extends State<RefreshDialog> {
       });
     }
     if (_c == 1) {
-      decodeFile(_file!).then((value) {
+      compute(parseExcelFile, _file!).then((value){
+      // decodeFile(_file!).then((value) {
         xl = value;
         if (xl != null) {
           setState(() {
@@ -139,40 +144,14 @@ class _RefreshDialogState extends State<RefreshDialog> {
     return PopScope(
       canPop: false,
       child: AlertDialog(
-        content: Column(
+        title: Text("Syncing..."),
+        content: Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            /*
-            _dialogElement(0, "Downloading Excel File", context),
-            Padding(padding: EdgeInsets.only(bottom: 15)),
-            _dialogElement(1, "Parsing Excel File", context),
-            Padding(padding: EdgeInsets.only(bottom: 15)),
-            _dialogElement(2, "Getting Sheet Names", context),
-            Padding(padding: EdgeInsets.only(bottom: 15)),
-            _dialogElement(3, "Reading Time Row", context),
-            Padding(padding: EdgeInsets.only(bottom: 15)),
-            _dialogElement(4, "Parsing Cells", context),
-            Padding(padding: EdgeInsets.only(bottom: 15)),
-            */
-            Lottie.asset(
-              "assets/images/loading_lottie.json",
-              delegates: LottieDelegates(
-                values: [
-                  ValueDelegate.color(
-                    const ['LOADING Outlines', '**'],
-                    value: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white
-                        : Colors.black,
-                  ),
-                ],
-              ),
-              //backgroundLoading: true,
-              height: 300,
-              width: 300,
-            ),
-
-            Text(_c > -1 ? _msg[_c] : "Initializing..."),
+            CircularProgressIndicator(),
+            Padding(padding: EdgeInsetsGeometry.only(right: 10)),
+            Text((_c > -1 ? "${_msg[_c]}..." : "Initializing...")),
           ],
         ),
         actions: [
