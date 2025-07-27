@@ -9,7 +9,7 @@ import 'package:sheet_routine/widgets/refresh_dialog.dart';
 import 'package:timeago_flutter/timeago_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-const appVersion = "v2.0.2";
+const appVersion = "v2.0.3";
 
 extension IndexedIterable<E> on Iterable<E> {
   /// Maps each element and its index to a new value
@@ -167,14 +167,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
   void _refresher() {
     showDialog(context: context, builder: (context) => RefreshDialog());
-
-    setState(() {
-      _counter++;
-    });
   }
 
   int getTabCout() {
@@ -277,6 +271,69 @@ class _MyHomePageState extends State<MyHomePage> {
                                       .toList()),
                                 ],
                               ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    showModalBottomSheet(
+                                      context: context,
+                                      builder: (context) => Container(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                            0.3, // 30% of screen height
+                                        decoration: BoxDecoration(
+                                          //color: Colors.white,
+                                          borderRadius: BorderRadius.vertical(
+                                            top: Radius.circular(16),
+                                          ),
+                                        ),
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            ListTile(
+                                              title: Text(
+                                                "Assignment",
+                                                textAlign: TextAlign.center,
+                                              ),
+                                              onTap: () {
+                                                launchUrl(
+                                                  Uri.parse(
+                                                    "https://rafiz001.github.io/cover/#/assignment?ccode=${courseCode}&ctitle=${courseTitle}&tname1=${_teacher[teacherCode[0]][0]}${teacherCode.length > 1 ? "&tname2=${_teacher[teacherCode[1]][0]}" : ""}",
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                            ListTile(
+                                              title: Text(
+                                                "Lab Report",
+                                                textAlign: TextAlign.center,
+                                              ),
+                                              onTap: () {
+                                                launchUrl(
+                                                  Uri.parse(
+                                                    "https://rafiz001.github.io/cover/#/labreport?ccode=${courseCode}&ctitle=${courseTitle}&tname1=${_teacher[teacherCode[0]][0]}${teacherCode.length > 1 ? "&tname2=${_teacher[teacherCode[1]][0]}" : ""}",
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                            ListTile(title: Text("Index Page",
+                                                textAlign: TextAlign.center,
+                                              ),
+                                              onTap: () {
+                                                launchUrl(
+                                                  Uri.parse(
+                                                    "https://rafiz001.github.io/cover/#/indexPage?ccode=${courseCode}&ctitle=${courseTitle}",
+                                                  ),
+                                                );
+                                              },),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: Text("Cover Page"),
+                                ),
+                              ],
                             );
                           },
                         );
@@ -285,7 +342,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                   ],
                 ),
-                Padding(padding: EdgeInsetsGeometry.only(bottom: 10))
+                Padding(padding: EdgeInsetsGeometry.only(bottom: 10)),
               ],
             ),
           )

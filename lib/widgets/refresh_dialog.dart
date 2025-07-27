@@ -1,7 +1,6 @@
 import 'package:excel/excel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
 import 'package:sheet_routine/data/hive.dart';
 import 'package:sheet_routine/fetcher/excel_fetcher.dart';
 import 'package:sheet_routine/main.dart';
