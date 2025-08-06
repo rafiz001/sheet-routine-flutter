@@ -3,7 +3,7 @@ const MANIFEST = 'flutter-app-manifest';
 const TEMP = 'flutter-temp-cache';
 const CACHE_NAME = 'flutter-app-cache';
 
-const RESOURCES = {"version.json": "b26d16f9890fcb52cb1a6e5dbea82d9f",
+const RESOURCES = {"version.json": "a33bec7b843844f69dce2b69db24a254",
 "canvaskit/chromium/canvaskit.js.symbols": "b61b5f4673c9698029fa0a746a9ad581",
 "canvaskit/chromium/canvaskit.wasm": "f504de372e31c8031018a9ec0a9ef5f0",
 "canvaskit/chromium/canvaskit.js": "8191e843020c832c9cf8852a4b909d4c",
@@ -13,7 +13,7 @@ const RESOURCES = {"version.json": "b26d16f9890fcb52cb1a6e5dbea82d9f",
 "canvaskit/skwasm.wasm": "39dd80367a4e71582d234948adc521c0",
 "canvaskit/canvaskit.wasm": "7a3f4ae7d65fc1de6a6e7ddd3224bc93",
 "canvaskit/canvaskit.js": "728b2d477d9b8c14593d4f9b82b484f3",
-"main.dart.js": "07b44217708f3e971356de6dd85c4d27",
+"main.dart.js": "b3f401f39a9011d57f0b368ec97b2387",
 "manifest.json": "004e874f2d5e2f94b067f5acb7ed1ab4",
 "index.html": "aa558d483f63003345306e4ba4f11388",
 "/": "aa558d483f63003345306e4ba4f11388",
@@ -22,7 +22,7 @@ const RESOURCES = {"version.json": "b26d16f9890fcb52cb1a6e5dbea82d9f",
 "icons/Icon-512.png": "10505d71331214d62dd67ac063cea362",
 "icons/Icon-maskable-512.png": "10505d71331214d62dd67ac063cea362",
 "flutter.js": "83d881c1dbb6d6bcd6b42e274605b69c",
-"assets/fonts/MaterialIcons-Regular.otf": "ad3bb27090e1f33acb53640196e0ad16",
+"assets/fonts/MaterialIcons-Regular.otf": "c97ced56ee977cfa7d08e677a6e349d8",
 "assets/shaders/ink_sparkle.frag": "ecc85a2e95f5e9f53123dcaf8cb9b6ce",
 "assets/AssetManifest.bin.json": "d427ae93c6e9c28db4fce9ef20ec41ef",
 "assets/FontManifest.json": "7b2a36307916a9721811788013e65289",
@@ -31,7 +31,7 @@ const RESOURCES = {"version.json": "b26d16f9890fcb52cb1a6e5dbea82d9f",
 "assets/assets/images/loading_lottie.json": "a4d557bc6390dbeeec3b0d71c4d7753a",
 "assets/AssetManifest.json": "5691857ec33377005048f28ecc3d8c66",
 "assets/AssetManifest.bin": "0d7e74111882e097bcdc4d84dad0c0bb",
-"flutter_bootstrap.js": "d967e7907e953a90afe8835f2e757d50",
+"flutter_bootstrap.js": "f905948b5ce351c9cf9308f58e2d4d8b",
 "favicon.png": "2b594a040a14ef0515ab3cf217707b1c"};
 // The application shell files that are downloaded before a service worker can
 // start.

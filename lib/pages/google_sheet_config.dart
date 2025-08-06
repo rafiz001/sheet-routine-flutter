@@ -2,7 +2,9 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sheet_routine/data/hive.dart';
+import 'package:sheet_routine/main.dart';
 import 'package:sheet_routine/widgets/refresh_dialog.dart';
 
 const routineConfig = {
@@ -21,10 +23,21 @@ const routineConfig = {
     "Thursday",
   ],
   "teacher_sheet": "Information",
-  "teacher_row": 15,
+  "teacher_row": 2,
   "teacher_short_code": 1,
   "teacher_name": 2,
   "teacher_contact": 6,
+};
+const labInfo = {
+  "CNL": "LAB-104",
+  "SEL": "LAB-129",
+  "BCL": "LAB-128",
+  "DMSL": "LAB-103",
+  "DSAL": "LAB-106",
+  "SDL": "Lab-105/A",
+  "MIL": "LAB-131",
+  "EEL": "LAB-127",
+  "DSCAL": "LAB-130",
 };
 
 class GoogleSheetConfig extends StatefulWidget {
@@ -58,7 +71,41 @@ class _GoogleSheetConfigState extends State<GoogleSheetConfig> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Google Sheet Config"),
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        actions: [
+          IconButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    content: Text("Are you sure want to delete the database?"),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Hive.deleteFromDisk();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("Database deleted. Restart the app.")),
+                          );
+                          
+                          Navigator.pop(context);
+                        },
+                        child: Text("Yes"),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text("No"),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+            icon: Icon(Icons.delete),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(

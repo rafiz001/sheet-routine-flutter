@@ -43,7 +43,7 @@ Future<List<int>?> downloadFile(dynamic configFromDB) async {
   String urlID = checkAndGet(
     configFromDB,
     "sheet_ID",
-    "1ZenZW0eYq4Na2sgDYQDjn9eRIX8r6S-cxPEtM97yAj4",
+    routineConfig["sheet_ID"],
   ); //1vJQVPX0-YypjwBAoiFcMNofKR91X8Zt57NAKlXrUre4
   String url =
       "https://docs.google.com/spreadsheets/u/0/d/$urlID/export?format=xlsx";
@@ -100,10 +100,8 @@ Future<Map<String, dynamic>> readTimeRow(
 
   int i = 0;
   while (true) {
-    var temp = excel
-        .tables[sheetNames[0]]!
-        .rows[timeRow][timeColumn + i++]!
-        .value;
+    var temp =
+        excel.tables[sheetNames[0]]!.rows[timeRow][timeColumn + i++]!.value;
     if (temp == null) {
       break;
     } else {
@@ -124,13 +122,13 @@ Future<void> readExcelFile(
   int lastCollumn,
   dynamic configFromDB,
 ) async {
-  int timeRow = checkAndGet(configFromDB, "timeRow", 1);
+  int timeRow = checkAndGet(configFromDB, "timeRow", routineConfig["timeRow"]);
 
-  int timeColumn = checkAndGet(configFromDB, "timeColumn", 3);
+  int timeColumn = checkAndGet(configFromDB, "timeColumn", routineConfig["timeColumn"]);
 
-  int sectionColumn = checkAndGet(configFromDB, "sectionColumn", 2);
+  int sectionColumn = checkAndGet(configFromDB, "sectionColumn", routineConfig["sectionColumn"]);
 
-  int semesterColumn = checkAndGet(configFromDB, "semesterColumn", 1);
+  int semesterColumn = checkAndGet(configFromDB, "semesterColumn", routineConfig["semesterColumn"]);
 
   List<dynamic> temp = checkAndGet(
     configFromDB,
@@ -149,6 +147,7 @@ Future<void> readExcelFile(
       print(sheetName);
     }
     Map<int, Map<int, int>> mergedHorizontal = {}; //row, col, length
+    Map<int, Map<int, int>> mergedVertical = {}; //col, row, length
     // Get merged cells information - spannedItems contains cell references like "A1:C3"
     List<String> mergedCells = excel.tables[sheetName]!.spannedItems;
     for (var mergedCell in mergedCells) {
@@ -162,6 +161,12 @@ Future<void> readExcelFile(
         }
         mergedHorizontal[start["row"]]![start["col"] ?? 0] =
             ((end["col"] ?? 0) - (start["col"] ?? 0)).abs() + 1;
+      } else {
+        if (!mergedVertical.containsKey(start["col"])) {
+          mergedVertical[start["col"]!] = {};
+        }
+        mergedVertical[start["col"]]![start["row"] ?? 0] =
+            ((end["row"]!) - (start["row"]!)).abs() + 1;
       }
     }
 
@@ -185,6 +190,13 @@ Future<void> readExcelFile(
         }
         if (j >= timeColumn) {
           List<dynamic> temp = [cell?.value.toString()];
+          if (mergedVertical.containsKey(j)) {
+            mergedVertical[j]!.forEach((mRow, mLength) {
+              if (i > mRow && i < (mRow + mLength)) {
+                temp = [excel.tables[sheetName]!.rows[mRow][j]?.value.toString()];
+              }
+            });
+          }
           temp.add(
             (mergedHorizontal.containsKey(i) &&
                     (mergedHorizontal[i]!.containsKey(j)))
@@ -219,12 +231,12 @@ Future<Map<String, List<String>>> getTeacherDetails(
   String teacher_sheet = checkAndGet(
     configFromDB,
     "teacher_sheet",
-    "Information",
+    routineConfig["teacher_sheet"],
   );
-  int teacher_row = checkAndGet(configFromDB, "teacher_row", 15);
-  int teacher_short_code = checkAndGet(configFromDB, "teacher_short_code", 1);
-  int teacher_name = checkAndGet(configFromDB, "teacher_name", 2);
-  int teacher_contact = checkAndGet(configFromDB, "teacher_contact", 6);
+  int teacher_row = checkAndGet(configFromDB, "teacher_row", routineConfig["teacher_row"]);
+  int teacher_short_code = checkAndGet(configFromDB, "teacher_short_code", routineConfig["teacher_short_code"]);
+  int teacher_name = checkAndGet(configFromDB, "teacher_name", routineConfig["teacher_name"]);
+  int teacher_contact = checkAndGet(configFromDB, "teacher_contact", routineConfig["teacher_contact"]);
   Map<String, List<String>> output = {};
   int i = teacher_row;
   while (true) {
