@@ -71,7 +71,8 @@ class _RefreshDialogState extends State<RefreshDialog> {
     }
     if (_c == 0) {
       // _file = await loadLocal();
-      downloadFile(config).then((value) {
+      // loadLocal().then((value) {
+       downloadFile(config).then((value) {
         _file = value;
         if (_file == null) {
           ScaffoldMessenger.of(
@@ -92,7 +93,7 @@ class _RefreshDialogState extends State<RefreshDialog> {
     }
     if (_c == 1) {
       compute(parseExcelFile, _file!).then((value){
-      // decodeFile(_file!).then((value) {
+      //  decodeFile(_file!).then((value) {
         xl = value;
         if (xl != null) {
           setState(() {

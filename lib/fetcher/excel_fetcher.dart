@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:excel/excel.dart';
 import 'package:flutter/foundation.dart';
@@ -60,26 +62,31 @@ Future<List<int>?> downloadFile(dynamic configFromDB) async {
   } catch (_) {
     return null;
   }
+  return null;
 }
 
 Future<List<int>?> loadLocal() async {
   try {
     ByteData data = await rootBundle.load(
-      'assets/Class Routine (Spring-25).xlsx',
+      'assets/Class Routine (Summer-25).xlsx',
     );
     var bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
 
     return bytes;
-  } catch (_) {
+  } catch (e) {
+    print(e);
     return null;
   }
 }
 
 Future<Excel?> decodeFile(List<int> response) async {
-  Excel? excel;
+  // Excel? excel;
 
-  excel = Excel.decodeBytes(response);
+  
+    var excel = Excel.decodeBytes(response);
+  
 
+  // var excel = SpreadsheetDecoder.decodeBytes(response);
   return excel;
 }
 
@@ -100,6 +107,7 @@ Future<Map<String, dynamic>> readTimeRow(
 
   int i = 0;
   while (true) {
+    if(excel.tables[sheetNames[0]]==null){print(excel.tables);break;}
     var temp =
         excel.tables[sheetNames[0]]!.rows[timeRow][timeColumn + i++]!.value;
     if (temp == null) {
@@ -149,6 +157,7 @@ Future<void> readExcelFile(
     Map<int, Map<int, int>> mergedHorizontal = {}; //row, col, length
     Map<int, Map<int, int>> mergedVertical = {}; //col, row, length
     // Get merged cells information - spannedItems contains cell references like "A1:C3"
+    if(excel.tables[sheetName]==null){continue;}
     List<String> mergedCells = excel.tables[sheetName]!.spannedItems;
     for (var mergedCell in mergedCells) {
       var splitted = mergedCell.split(":");
