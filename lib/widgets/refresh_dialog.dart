@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:excel/excel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +18,7 @@ class RefreshDialog extends StatefulWidget {
 }
 
 int _c = -1;
-List<int>? _file;
+dynamic _file;
 Excel? xl;
 // bool _jobExecuted = false;
 // List<String> _sheetNames = [];
@@ -74,7 +76,10 @@ class _RefreshDialogState extends State<RefreshDialog> {
       // loadLocal().then((value) {
        downloadFile(config).then((value) {
         _file = value;
-        if (_file == null) {
+        if(kDebugMode){
+          print(_file);
+        }
+        if (_file == []) {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text("Download error.")));
@@ -85,22 +90,10 @@ class _RefreshDialogState extends State<RefreshDialog> {
           print("download done!");
         }
         setState(() {
-          _c = 1;
+          _c = -1;
         });
 
         return;
-      });
-    }
-    if (_c == 1) {
-      compute(parseExcelFile, _file!).then((value){
-      //  decodeFile(_file!).then((value) {
-        xl = value;
-        if (xl != null) {
-          setState(() {
-            _c = 2;
-          });
-          return;
-        }
       });
     }
 

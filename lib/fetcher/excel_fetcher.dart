@@ -1,6 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 
-import 'package:dio/dio.dart';
+import 'package:http/http.dart' as http;
 import 'package:excel/excel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show ByteData, rootBundle;
@@ -41,28 +42,39 @@ Map<String, int> parseCellId(String cellId) {
   return {'col': 0, 'row': 0};
 }
 
-Future<List<int>?> downloadFile(dynamic configFromDB) async {
-  String urlID = checkAndGet(
+Future<dynamic> downloadFile(dynamic configFromDB) async {
+  String urlID = "1Sdmr60rcZeBCa2ofswUr9mxIreIj71W9HYM1RRhvfMM";
+  /*String urlID = checkAndGet(
     configFromDB,
     "sheet_ID",
     routineConfig["sheet_ID"],
   ); //1vJQVPX0-YypjwBAoiFcMNofKR91X8Zt57NAKlXrUre4
+  */
+  var sems = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th"];
   String url =
-      "https://docs.google.com/spreadsheets/u/0/d/$urlID/export?format=xlsx";
-  final dio = Dio();
+      "https://docs.google.com/spreadsheets/d/$urlID/gviz/tq?tqx=out:json&sheet=9th";
   try {
     // Download the file
-    final response = await dio.get(
-      url,
-      options: Options(responseType: ResponseType.bytes),
-    );
-    if (response.statusCode == 200) {
-      return response.data;
+    var jsonValue = [];
+    for (int i = 0; i < sems.length; i++) {
+      final response = await http.get(
+        Uri.parse(
+          "https://docs.google.com/spreadsheets/d/$urlID/gviz/tq?tqx=out:json&sheet=${sems[i]}",
+        ),
+      );
+      if (response.statusCode == 200) {
+        var temp = response.body.split("setResponse(")[1];
+        var main = temp.split(");")[0];
+        jsonValue.add(json.decode(main));
+
+        // print(jsonValue["table"]["rows"][0]['c'][0]['v']);
+      }
     }
+      return jsonValue;
   } catch (_) {
-    return null;
+    return [];
   }
-  return null;
+  
 }
 
 Future<List<int>?> loadLocal() async {
@@ -82,9 +94,7 @@ Future<List<int>?> loadLocal() async {
 Future<Excel?> decodeFile(List<int> response) async {
   // Excel? excel;
 
-  
-    var excel = Excel.decodeBytes(response);
-  
+  var excel = Excel.decodeBytes(response);
 
   // var excel = SpreadsheetDecoder.decodeBytes(response);
   return excel;
@@ -107,7 +117,10 @@ Future<Map<String, dynamic>> readTimeRow(
 
   int i = 0;
   while (true) {
-    if(excel.tables[sheetNames[0]]==null){print(excel.tables);break;}
+    if (excel.tables[sheetNames[0]] == null) {
+      print(excel.tables);
+      break;
+    }
     var temp =
         excel.tables[sheetNames[0]]!.rows[timeRow][timeColumn + i++]!.value;
     if (temp == null) {
@@ -132,11 +145,23 @@ Future<void> readExcelFile(
 ) async {
   int timeRow = checkAndGet(configFromDB, "timeRow", routineConfig["timeRow"]);
 
-  int timeColumn = checkAndGet(configFromDB, "timeColumn", routineConfig["timeColumn"]);
+  int timeColumn = checkAndGet(
+    configFromDB,
+    "timeColumn",
+    routineConfig["timeColumn"],
+  );
 
-  int sectionColumn = checkAndGet(configFromDB, "sectionColumn", routineConfig["sectionColumn"]);
+  int sectionColumn = checkAndGet(
+    configFromDB,
+    "sectionColumn",
+    routineConfig["sectionColumn"],
+  );
 
-  int semesterColumn = checkAndGet(configFromDB, "semesterColumn", routineConfig["semesterColumn"]);
+  int semesterColumn = checkAndGet(
+    configFromDB,
+    "semesterColumn",
+    routineConfig["semesterColumn"],
+  );
 
   List<dynamic> temp = checkAndGet(
     configFromDB,
@@ -157,7 +182,9 @@ Future<void> readExcelFile(
     Map<int, Map<int, int>> mergedHorizontal = {}; //row, col, length
     Map<int, Map<int, int>> mergedVertical = {}; //col, row, length
     // Get merged cells information - spannedItems contains cell references like "A1:C3"
-    if(excel.tables[sheetName]==null){continue;}
+    if (excel.tables[sheetName] == null) {
+      continue;
+    }
     List<String> mergedCells = excel.tables[sheetName]!.spannedItems;
     for (var mergedCell in mergedCells) {
       var splitted = mergedCell.split(":");
@@ -202,7 +229,9 @@ Future<void> readExcelFile(
           if (mergedVertical.containsKey(j)) {
             mergedVertical[j]!.forEach((mRow, mLength) {
               if (i > mRow && i < (mRow + mLength)) {
-                temp = [excel.tables[sheetName]!.rows[mRow][j]?.value.toString()];
+                temp = [
+                  excel.tables[sheetName]!.rows[mRow][j]?.value.toString(),
+                ];
               }
             });
           }
@@ -242,10 +271,26 @@ Future<Map<String, List<String>>> getTeacherDetails(
     "teacher_sheet",
     routineConfig["teacher_sheet"],
   );
-  int teacher_row = checkAndGet(configFromDB, "teacher_row", routineConfig["teacher_row"]);
-  int teacher_short_code = checkAndGet(configFromDB, "teacher_short_code", routineConfig["teacher_short_code"]);
-  int teacher_name = checkAndGet(configFromDB, "teacher_name", routineConfig["teacher_name"]);
-  int teacher_contact = checkAndGet(configFromDB, "teacher_contact", routineConfig["teacher_contact"]);
+  int teacher_row = checkAndGet(
+    configFromDB,
+    "teacher_row",
+    routineConfig["teacher_row"],
+  );
+  int teacher_short_code = checkAndGet(
+    configFromDB,
+    "teacher_short_code",
+    routineConfig["teacher_short_code"],
+  );
+  int teacher_name = checkAndGet(
+    configFromDB,
+    "teacher_name",
+    routineConfig["teacher_name"],
+  );
+  int teacher_contact = checkAndGet(
+    configFromDB,
+    "teacher_contact",
+    routineConfig["teacher_contact"],
+  );
   Map<String, List<String>> output = {};
   int i = teacher_row;
   while (true) {
