@@ -36,7 +36,7 @@ dependencies:
 #  cupertino_icons: ^1.0.8
   excel: ^4.0.6
   # spreadsheet_decoder: ^2.3.0
-  dio: ^5.8.0+1
+  http: ^1.0.0
   url_launcher: ^6.3.2
   hive: ^2.2.3
   hive_flutter: ^1.1.0
