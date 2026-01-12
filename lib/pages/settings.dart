@@ -66,7 +66,7 @@ class _SettingsState extends State<Settings> {
     final savedThemeValue = await getValueFromHive(
       "settings",
       "theme",
-      "Green",
+      "Black",
     );
     final tempDays = await getValueFromHive("routine", "days", null);
     final savedSelectedSemSec = await getValueFromHive(

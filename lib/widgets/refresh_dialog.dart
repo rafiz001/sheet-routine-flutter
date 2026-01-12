@@ -7,7 +7,6 @@ import 'package:sheet_routine/fetcher/excel_fetcher.dart';
 import 'package:sheet_routine/main.dart';
 import 'package:sheet_routine/pages/google_sheet_config.dart';
 
-
 class RefreshDialog extends StatefulWidget {
   RefreshDialog({Key? key}) : super(key: key);
   @override
@@ -71,7 +70,7 @@ class _RefreshDialogState extends State<RefreshDialog> {
     if (_c == 0) {
       // _file = await loadLocal();
       // loadLocal().then((value) {
-       downloadFile(config).then((value) {
+      downloadFile(config).then((value) {
         _file = value;
         // if(kDebugMode){
         //   print(_file);
@@ -97,12 +96,12 @@ class _RefreshDialogState extends State<RefreshDialog> {
     if (_c == 2) {
       readTimeRow(_file, timeColumn, timeRow).then((value) {
         _timeRowData = value;
-        if(kDebugMode){
+        if (kDebugMode) {
           print(_timeRowData);
         }
         if (_timeRowData["lastCollumn"] != null) {
           setState(() {
-            _c = 3;//3;
+            _c = 3; //3;
           });
           return;
         }
@@ -112,9 +111,12 @@ class _RefreshDialogState extends State<RefreshDialog> {
       readExcelFile(_file, _timeRowData["lastCollumn"], config).then((value) {
         setState(() {
           _c = -1;
-        Navigator.pop(context);
         });
         MyApp.restartApp(context);
+        if (mounted && Navigator.canPop(context)) {
+          Navigator.pop(context);
+        }
+
         return;
       });
     }
@@ -151,7 +153,6 @@ class _RefreshDialogState extends State<RefreshDialog> {
           ],
         ),
         actions: [
-          
           TextButton(
             onPressed: () {
               _c = -1;

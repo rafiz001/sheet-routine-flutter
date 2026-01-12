@@ -1,4 +1,5 @@
 import 'package:flex_color_scheme/flex_color_scheme.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sheet_routine/data/hive.dart';
@@ -9,7 +10,7 @@ import 'package:sheet_routine/widgets/refresh_dialog.dart';
 import 'package:timeago_flutter/timeago_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-const appVersion = "v2.1.0";
+const appVersion = "v2.1.1";
 
 extension IndexedIterable<E> on Iterable<E> {
   /// Maps each element and its index to a new value
@@ -24,7 +25,7 @@ void main() async {
   await Hive.initFlutter();
   await Hive.openBox('settings');
   await Hive.openBox('routine');
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatefulWidget {
@@ -85,7 +86,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _loadDefaultValue() async {
-    final seedC = await getValueFromHive("settings", "theme", "Green");
+    final seedC = await getValueFromHive("settings", "theme", "Black");
     final config = await getValueFromHive("settings", "config", null);
     final enabled = await getValueFromHive("settings", "enabled", null);
     final syncAt = await getValueFromHive("routine", "syncAt", null);
@@ -171,6 +172,18 @@ class _MyHomePageState extends State<MyHomePage> {
     showDialog(context: context, builder: (context) => RefreshDialog());
   }
 
+  String subPreProcessor(String input) {
+    var temp1 = input.split("\n");
+    var sub = temp1[1];
+    var teacher = temp1[0];
+    var room = temp1[2];
+    var text = teacher.split(",");
+    if (text.length > 1) {
+      teacher = "${text[0].trim()}\n${text[1].trim()}";
+    }
+    return "$sub\n$teacher\n$room";
+  }
+
   int getTabCout() {
     int i = 0;
     if (_selectedSemSec["sec0"] != null &&
@@ -213,7 +226,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<Widget> dayWidgets(String value, sem, sec) {
     try {
-      return (List<dynamic>.of(_days[value]![sem]![sec]!))
+      var classList = List<dynamic>.of(_days[value]![sem]![sec]!);
+      classList.sort((a, b) => (a[1] as int).compareTo(b[1]));
+      return (classList)
           .asMap()
           .entries
           .where((element) {
@@ -264,7 +279,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 mainAxisSize: MainAxisSize.min,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text("Raw: ${entry.value[0]}"),
+                                  Text(entry.value[0]),
                                   Divider(),
                                   /*Text("Teachers:"),
                                   ...(teacherCode
@@ -332,7 +347,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                               onTap: () {
                                                 launchUrl(
                                                   Uri.parse(
-                                                    "https://rafiz001.github.io/cover/#/labreport?ccode=${courseCode}&ctitle=${courseTitle}&tname1=${teachers[0]}${teachers.length > 1 ? "&tname2=${teachers[1]}":""}",
+                                                    "https://rafiz001.github.io/cover/#/labreport?ccode=${courseCode}&ctitle=${courseTitle}&tname1=${teachers[0]}${teachers.length > 1 ? "&tname2=${teachers[1]}" : ""}",
                                                   ),
                                                 );
                                               },
@@ -363,7 +378,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         );
                       },
                       child: Text(
-                        entry.value[0] ?? " ",
+                        subPreProcessor(entry.value[0]),
                         textAlign: TextAlign.right,
                       ),
                     ),
@@ -374,7 +389,10 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           )
           .toList();
-    } catch (_) {
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
       return [
         Padding(padding: EdgeInsetsGeometry.only(bottom: 5)),
         Text("There is error!"),
@@ -402,34 +420,41 @@ class _MyHomePageState extends State<MyHomePage> {
         children: [
           ...(days
               .map(
-                (value) => Container(
-                  alignment: Alignment.center,
-                  width: double.infinity,
-                  margin: EdgeInsets.all(10),
-                  padding: EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.rectangle,
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          dayName == value
-                              ? Icon(Icons.check)
-                              : Padding(
-                                  padding: EdgeInsetsGeometry.only(right: 0),
+                (value) => _days.containsKey(value)
+                    ? Container(
+                        alignment: Alignment.center,
+                        width: double.infinity,
+                        margin: EdgeInsets.all(10),
+                        padding: EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.rectangle,
+                          color: Theme.of(context).colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                dayName == value
+                                    ? Icon(Icons.check)
+                                    : Padding(
+                                        padding: EdgeInsetsGeometry.only(
+                                          right: 0,
+                                        ),
+                                      ),
+                                Padding(
+                                  padding: EdgeInsetsGeometry.only(right: 10),
                                 ),
-                          Padding(padding: EdgeInsetsGeometry.only(right: 10)),
-                          Text(value, style: TextStyle(fontSize: 20)),
-                        ],
-                      ),
-                      ...(dayWidgets(value, sem, sec)),
-                    ],
-                  ),
-                ),
+                                Text(value, style: TextStyle(fontSize: 20)),
+                              ],
+                            ),
+
+                            ...(dayWidgets(value, sem, sec)),
+                          ],
+                        ),
+                      )
+                    : Padding(padding: EdgeInsetsGeometry.all(1)),
               )
               .toList()),
           Padding(padding: EdgeInsetsGeometry.only(bottom: 500)),
@@ -455,6 +480,7 @@ class _MyHomePageState extends State<MyHomePage> {
         _enabled[2]) {
       list.add(aTab(_selectedSemSec["sem2"]!, _selectedSemSec["sec2"]));
     }
+    
     return list;
   }
 
@@ -566,7 +592,15 @@ class _MyHomePageState extends State<MyHomePage> {
             dividerColor: Theme.of(context).colorScheme.primaryContainer,
           ),
         ),
-        body: TabBarView(children: getTabs()),
+        body: ((_selectedSemSec["sec0"] == null ||
+            _selectedSemSec["sec0"] == "null") &&
+        (_selectedSemSec["sec1"] == null ||
+            _selectedSemSec["sec1"] == "null") &&
+        (_selectedSemSec["sec2"] == null ||
+            _selectedSemSec["sec2"] == "null") &&
+        !_enabled[0] &&
+        !_enabled[1] &&
+        !_enabled[2])?Center(child: Text("1. Sync first\n2. Set semester, section and save\n3. Back to home"),):TabBarView(children: getTabs()),
 
         floatingActionButton: FloatingActionButton(
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
