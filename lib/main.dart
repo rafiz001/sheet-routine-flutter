@@ -9,7 +9,7 @@ import 'package:sheet_routine/widgets/refresh_dialog.dart';
 import 'package:timeago_flutter/timeago_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-const appVersion = "v2.0.5";
+const appVersion = "v2.1.0";
 
 extension IndexedIterable<E> on Iterable<E> {
   /// Maps each element and its index to a new value
