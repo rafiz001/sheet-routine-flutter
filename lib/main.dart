@@ -1,4 +1,3 @@
-
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -226,155 +225,149 @@ class _MyHomePageState extends State<MyHomePage> {
                 Divider(color: Theme.of(context).colorScheme.inverseSurface),
                 Padding(padding: EdgeInsetsGeometry.only(bottom: 10)),
 
-                   Row(                      
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        entry.value[1] == 1
-                            ? Text(_timeData[entry.key])
-                            : Column(
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Text(_timeData[entry.value[1] - 1]),
+
+                    InkWell(
+                      onTap: () {
+                        final raw = entry.value[0] as String;
+                        var cellPortions = raw.split("\n");
+                        var temp1 = cellPortions[1].split("(");
+
+                        final courseCode = temp1[0].trim();
+                        final teachers = cellPortions[0].trim().split(",");
+                        final courseTitle = courses[courseCode] ?? courseCode;
+                        /*final teacherCode = RegExp(r'\[(.*?)\]')
+                            .allMatches(raw)
+                            .map((match) => match.group(1)!)
+                            .toList();
+                        final labs = RegExp(r'\((.*?)\)')
+                            .allMatches(raw)
+                            .map((match) => match.group(1)!.trim())
+                            .toList();
+                        String? lab;
+                        labs.forEach((element) {
+                          if (labInfo.containsKey(element)) {
+                            lab = "$element: ${labInfo[element]}";
+                          }
+                        });*/
+
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              title: Text(courseTitle),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(_timeData[entry.key]),
-                                  Text(_timeData[entry.key + 1]),
+                                  Text("Raw: ${entry.value[0]}"),
+                                  Divider(),
+                                  /*Text("Teachers:"),
+                                  ...(teacherCode
+                                      .map(
+                                        (elem) => SelectableText(
+                                          _teacher[elem] != null
+                                              ? "${_teacher[elem][0]} ${_teacher[elem][1] == "null" ? "" : "(${_teacher[elem][1]})"}"
+                                              : elem,
+                                        ),
+                                      )
+                                      .toList()),
+                                  (lab != null)
+                                      ? Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Divider(),
+                                            Text("Lab → ${lab!}"),
+                                          ],
+                                        )
+                                      : Padding(
+                                          padding: EdgeInsetsGeometry.zero,
+                                        ),*/
                                 ],
                               ),
-                           
-                        InkWell(
-                          onTap: () {
-                            final raw = entry.value[0] as String;
-                            final courseCode = raw
-                                .split("[")[0]
-                                .trim()
-                                .replaceAll(RegExp(r'-'), " ");
-                            final courseTitle = courses[courseCode] ?? courseCode;
-                            final teacherCode = RegExp(r'\[(.*?)\]')
-                                .allMatches(raw)
-                                .map((match) => match.group(1)!)
-                                .toList();
-                            final labs = RegExp(r'\((.*?)\)')
-                                .allMatches(raw)
-                                .map((match) => match.group(1)!.trim())
-                                .toList();
-                            String? lab;
-                            labs.forEach((element) {
-                              if (labInfo.containsKey(element)) {
-                                lab = "$element: ${labInfo[element]}";
-                              }
-                            });
-                    
-                            showDialog(
-                              context: context,
-                              builder: (context) {
-                                return AlertDialog(
-                                  title: Text(courseTitle),
-                                  content: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text("Raw: ${entry.value[0]}"),
-                                      Divider(),
-                                      Text("Teachers:"),
-                                      ...(teacherCode
-                                          .map(
-                                            (elem) => SelectableText(
-                                              _teacher[elem] != null
-                                                  ? "${_teacher[elem][0]} ${_teacher[elem][1] == "null" ? "" : "(${_teacher[elem][1]})"}"
-                                                  : elem,
-                                            ),
-                                          )
-                                          .toList()),
-                                      (lab != null)
-                                          ? Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Divider(),
-                                                Text("Lab → ${lab!}"),
-                                              ],
-                                            )
-                                          : Padding(
-                                              padding: EdgeInsetsGeometry.zero,
-                                            ),
-                                    ],
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                        showModalBottomSheet(
-                                          context: context,
-                                          builder: (context) => Container(
-                                            height:
-                                                MediaQuery.of(
-                                                  context,
-                                                ).size.height *
-                                                0.3, // 30% of screen height
-                                            decoration: BoxDecoration(
-                                              //color: Colors.white,
-                                              borderRadius: BorderRadius.vertical(
-                                                top: Radius.circular(16),
-                                              ),
-                                            ),
-                                            child: Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                ListTile(
-                                                  title: Text(
-                                                    "Assignment",
-                                                    textAlign: TextAlign.center,
-                                                  ),
-                                                  onTap: () {
-                                                    launchUrl(
-                                                      Uri.parse(
-                                                        "https://rafiz001.github.io/cover/#/assignment?ccode=${courseCode}&ctitle=${courseTitle}&tname1=${_teacher[teacherCode[0]][0]}${teacherCode.length > 1 ? "&tname2=${_teacher[teacherCode[1]][0]}" : ""}",
-                                                      ),
-                                                    );
-                                                  },
-                                                ),
-                                                ListTile(
-                                                  title: Text(
-                                                    "Lab Report",
-                                                    textAlign: TextAlign.center,
-                                                  ),
-                                                  onTap: () {
-                                                    launchUrl(
-                                                      Uri.parse(
-                                                        "https://rafiz001.github.io/cover/#/labreport?ccode=${courseCode}&ctitle=${courseTitle}&tname1=${_teacher[teacherCode[0]][0]}${teacherCode.length > 1 ? "&tname2=${_teacher[teacherCode[1]][0]}" : ""}",
-                                                      ),
-                                                    );
-                                                  },
-                                                ),
-                                                ListTile(
-                                                  title: Text(
-                                                    "Index Page",
-                                                    textAlign: TextAlign.center,
-                                                  ),
-                                                  onTap: () {
-                                                    launchUrl(
-                                                      Uri.parse(
-                                                        "https://rafiz001.github.io/cover/#/indexPage?ccode=${courseCode}&ctitle=${courseTitle}",
-                                                      ),
-                                                    );
-                                                  },
-                                                ),
-                                              ],
-                                            ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    showModalBottomSheet(
+                                      context: context,
+                                      builder: (context) => Container(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                            0.3, // 30% of screen height
+                                        decoration: BoxDecoration(
+                                          //color: Colors.white,
+                                          borderRadius: BorderRadius.vertical(
+                                            top: Radius.circular(16),
                                           ),
-                                        );
-                                      },
-                                      child: Text("Cover Page"),
-                                    ),
-                                  ],
-                                );
-                              },
+                                        ),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            ListTile(
+                                              title: Text(
+                                                "Assignment",
+                                                textAlign: TextAlign.center,
+                                              ),
+                                              onTap: () {
+                                                launchUrl(
+                                                  Uri.parse(
+                                                    "https://rafiz001.github.io/cover/#/assignment?ccode=${courseCode}&ctitle=${courseTitle}&tname1=${teachers[0]}${teachers.length > 1 ? "&tname2=${teachers[1]}" : ""}",
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                            ListTile(
+                                              title: Text(
+                                                "Lab Report",
+                                                textAlign: TextAlign.center,
+                                              ),
+                                              onTap: () {
+                                                launchUrl(
+                                                  Uri.parse(
+                                                    "https://rafiz001.github.io/cover/#/labreport?ccode=${courseCode}&ctitle=${courseTitle}&tname1=${teachers[0]}${teachers.length > 1 ? "&tname2=${teachers[1]}":""}",
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                            ListTile(
+                                              title: Text(
+                                                "Index Page",
+                                                textAlign: TextAlign.center,
+                                              ),
+                                              onTap: () {
+                                                launchUrl(
+                                                  Uri.parse(
+                                                    "https://rafiz001.github.io/cover/#/indexPage?ccode=${courseCode}&ctitle=${courseTitle}",
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: Text("Cover Page"),
+                                ),
+                              ],
                             );
                           },
-                          child: Text(entry.value[0] ?? " "),
-                        ),
-                      ],
-                    
+                        );
+                      },
+                      child: Text(
+                        entry.value[0] ?? " ",
+                        textAlign: TextAlign.right,
+                      ),
+                    ),
+                  ],
                 ),
                 Padding(padding: EdgeInsetsGeometry.only(bottom: 10)),
               ],
@@ -407,7 +400,7 @@ class _MyHomePageState extends State<MyHomePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ...(_sheetList
+          ...(days
               .map(
                 (value) => Container(
                   alignment: Alignment.center,

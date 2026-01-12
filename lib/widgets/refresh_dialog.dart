@@ -1,15 +1,12 @@
 import 'dart:developer';
 
-import 'package:excel/excel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:sheet_routine/data/hive.dart';
 import 'package:sheet_routine/fetcher/excel_fetcher.dart';
 import 'package:sheet_routine/main.dart';
+import 'package:sheet_routine/pages/google_sheet_config.dart';
 
-Excel parseExcelFile(List<int> _bytes) {
-  return Excel.decodeBytes(_bytes);
-}
 
 class RefreshDialog extends StatefulWidget {
   RefreshDialog({Key? key}) : super(key: key);
@@ -19,7 +16,7 @@ class RefreshDialog extends StatefulWidget {
 
 int _c = -1;
 dynamic _file;
-Excel? xl;
+
 // bool _jobExecuted = false;
 // List<String> _sheetNames = [];
 Map<String, dynamic> _timeRowData = {};
@@ -63,10 +60,10 @@ class _RefreshDialogState extends State<RefreshDialog> {
 
     int timeRow = (config is Map && config.containsKey("timeRow"))
         ? config["timeRow"]
-        : 1;
+        : routineConfig["timeRow"];
     int timeColumn = (config is Map && config.containsKey("timeColumn"))
         ? config["timeColumn"]
-        : 3;
+        : routineConfig["timeColumn"];
 
     if (kDebugMode) {
       print("c= $_c");
@@ -76,9 +73,9 @@ class _RefreshDialogState extends State<RefreshDialog> {
       // loadLocal().then((value) {
        downloadFile(config).then((value) {
         _file = value;
-        if(kDebugMode){
-          print(_file);
-        }
+        // if(kDebugMode){
+        //   print(_file);
+        // }
         if (_file == []) {
           ScaffoldMessenger.of(
             context,
@@ -90,7 +87,7 @@ class _RefreshDialogState extends State<RefreshDialog> {
           print("download done!");
         }
         setState(() {
-          _c = -1;
+          _c = 2;
         });
 
         return;
@@ -98,24 +95,30 @@ class _RefreshDialogState extends State<RefreshDialog> {
     }
 
     if (_c == 2) {
-      readTimeRow(xl!, timeColumn, timeRow).then((value) {
+      readTimeRow(_file, timeColumn, timeRow).then((value) {
         _timeRowData = value;
+        if(kDebugMode){
+          print(_timeRowData);
+        }
         if (_timeRowData["lastCollumn"] != null) {
           setState(() {
-            _c = 3;
+            _c = 3;//3;
           });
           return;
         }
       });
     }
     if (_c == 3) {
-      readExcelFile(xl!, _timeRowData["lastCollumn"], config).then((value) {
+      readExcelFile(_file, _timeRowData["lastCollumn"], config).then((value) {
         setState(() {
-          _c = 4;
+          _c = -1;
+        Navigator.pop(context);
         });
+        MyApp.restartApp(context);
         return;
       });
     }
+    /*
     if (_c == 4) {
       getTeacherDetails(xl!, config).then((teachers) {
         if (kDebugMode) {
@@ -128,7 +131,7 @@ class _RefreshDialogState extends State<RefreshDialog> {
         Navigator.pop(context);
         return;
       });
-    }
+    }*/
   }
 
   @override

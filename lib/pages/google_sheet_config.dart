@@ -8,21 +8,13 @@ import 'package:sheet_routine/main.dart';
 import 'package:sheet_routine/widgets/refresh_dialog.dart';
 
 const routineConfig = {
-  "routine_name": "Summer - 2025",
-  "sheet_ID": "1ZenZW0eYq4Na2sgDYQDjn9eRIX8r6S-cxPEtM97yAj4",
-  "timeColumn": 3,
-  "timeRow": 1,
-  "sectionColumn": 2,
-  "semesterColumn": 1,
-  "sheetNames": [
-    "Saturday",
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-  ],
-  "teacher_sheet": "Information",
+  "routine_name": "Spring 2026",
+  "sheet_ID": "1Sdmr60rcZeBCa2ofswUr9mxIreIj71W9HYM1RRhvfMM",
+  "timeColumn": 1,
+  "timeRow": 0,
+  "dayColumn": 0,
+  "sheetNames": ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th"],
+  "teacher_sheet": "Info.",
   "teacher_row": 2,
   "teacher_short_code": 1,
   "teacher_name": 2,
