@@ -63,11 +63,7 @@ class _SettingsState extends State<Settings> {
   }
 
   Future<void> _loadDefaultValue() async {
-    final savedThemeValue = await getValueFromHive(
-      "settings",
-      "theme",
-      "Teal",
-    );
+    final savedThemeValue = await getValueFromHive("settings", "theme", "Teal");
     final tempDays = await getValueFromHive("routine", "days", null);
     final savedSelectedSemSec = await getValueFromHive(
       "settings",
@@ -123,7 +119,7 @@ class _SettingsState extends State<Settings> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Settings"),
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -163,11 +159,12 @@ class _SettingsState extends State<Settings> {
                   ],
                   onChanged: (value) {
                     if (value != null) {
-                    setState(() {
-                      selectedSemSec["sem0"] = value.toString();
-                      selectedSemSec["sec0"] = null;
-                      _generateSections(value.toString(), 0);
-                    });}
+                      setState(() {
+                        selectedSemSec["sem0"] = value.toString();
+                        selectedSemSec["sec0"] = null;
+                        _generateSections(value.toString(), 0);
+                      });
+                    }
                   },
                   icon: Icon(Icons.arrow_downward),
                   underline: Container(),
@@ -189,9 +186,10 @@ class _SettingsState extends State<Settings> {
                   ],
                   onChanged: (value) {
                     if (value != null) {
-                    setState(() {
-                      selectedSemSec["sec0"] = value.toString();
-                    });}
+                      setState(() {
+                        selectedSemSec["sec0"] = value.toString();
+                      });
+                    }
                   },
                   icon: Icon(Icons.arrow_downward),
                   underline: Container(),
@@ -234,11 +232,12 @@ class _SettingsState extends State<Settings> {
                         ],
                         onChanged: (value) {
                           if (value != null) {
-                          setState(() {
-                            selectedSemSec["sem1"] = value.toString();
-                            selectedSemSec["sec1"] = null;
-                            _generateSections(value.toString(), 1);
-                          });}
+                            setState(() {
+                              selectedSemSec["sem1"] = value.toString();
+                              selectedSemSec["sec1"] = null;
+                              _generateSections(value.toString(), 1);
+                            });
+                          }
                         },
                         icon: Icon(Icons.arrow_downward),
                         underline: Container(),
@@ -260,9 +259,10 @@ class _SettingsState extends State<Settings> {
                         ],
                         onChanged: (value) {
                           if (value != null) {
-                          setState(() {
-                            selectedSemSec["sec1"] = value.toString();
-                          });}
+                            setState(() {
+                              selectedSemSec["sec1"] = value.toString();
+                            });
+                          }
                         },
                         icon: Icon(Icons.arrow_downward),
                         underline: Container(),
@@ -306,11 +306,12 @@ class _SettingsState extends State<Settings> {
                         ],
                         onChanged: (value) {
                           if (value != null) {
-                          setState(() {
-                            selectedSemSec["sem2"] = value.toString();
-                            selectedSemSec["sec2"] = null;
-                            _generateSections(value.toString(), 2);
-                          });}
+                            setState(() {
+                              selectedSemSec["sem2"] = value.toString();
+                              selectedSemSec["sec2"] = null;
+                              _generateSections(value.toString(), 2);
+                            });
+                          }
                         },
                         icon: Icon(Icons.arrow_downward),
                         underline: Container(),
@@ -384,10 +385,12 @@ class _SettingsState extends State<Settings> {
                         setValueToHive("settings", "enabled", enabled).then((
                           _,
                         ) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("Data saved!")),
-                          );
-                          MyApp.restartApp(context);
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Data saved!")),
+                            );
+                            MyApp.restartApp(context);
+                          }
                         });
                       });
                     });
