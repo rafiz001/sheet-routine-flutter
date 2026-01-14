@@ -163,5 +163,10 @@ final courses = {
     "CSE 4211": "Machine Learning",
     "CSE 4212": "Machine Learning Lab",
     "CSE 4213": "UI/UX Engineering",
-    "CSE 4214": "UI/UX Engineering Lab"
+    "CSE 4214": "UI/UX Engineering Lab",
+
+    "CSE 4108": "Microcontroller, Computer Peripheral and Interfacing Lab",
+    "ACC 4171":"Industrial Management and Accountancy",
+    "ECO 3271":"Engineering Economics"
+
 };
