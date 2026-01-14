@@ -9,6 +9,8 @@ import 'package:sheet_routine/pages/settings.dart';
 import 'package:sheet_routine/widgets/refresh_dialog.dart';
 import 'package:timeago_flutter/timeago_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:pull_to_refresh_flutter3/pull_to_refresh_flutter3.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 
 const appVersion = "v2.1.1";
 
@@ -86,7 +88,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _loadDefaultValue() async {
-    final seedC = await getValueFromHive("settings", "theme", "Black");
+    final seedC = await getValueFromHive("settings", "theme", "Teal");
     final config = await getValueFromHive("settings", "config", null);
     final enabled = await getValueFromHive("settings", "enabled", null);
     final syncAt = await getValueFromHive("routine", "syncAt", null);
@@ -170,6 +172,20 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   void _refresher() {
     showDialog(context: context, builder: (context) => RefreshDialog());
+  }
+
+  final RefreshController _refreshController = RefreshController(
+    initialRefresh: true,
+  );
+  void _onRefresh() async {
+    final bool isConnected =
+        await InternetConnectionChecker.instance.hasConnection;
+    if (isConnected && mounted) {
+     await showDialog(context: context, builder: (context) => RefreshDialog());
+    _refreshController.refreshCompleted();
+    } else {
+      _refreshController.refreshFailed();
+    }
   }
 
   String subPreProcessor(String input) {
@@ -414,9 +430,13 @@ class _MyHomePageState extends State<MyHomePage> {
     ];
     String dayName = days[now.weekday % 7];
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return SmartRefresher(
+      enablePullUp: false,
+      enablePullDown: true,
+      controller: _refreshController,
+      onRefresh: _onRefresh,
+      header: WaterDropHeader(),
+      child: ListView(
         children: [
           ...(days
               .map(
@@ -480,10 +500,17 @@ class _MyHomePageState extends State<MyHomePage> {
         _enabled[2]) {
       list.add(aTab(_selectedSemSec["sem2"]!, _selectedSemSec["sec2"]));
     }
-    
+
     return list;
   }
 
+  final _isBlank =
+      ((_selectedSemSec["sec0"] == null || _selectedSemSec["sec0"] == "null") &&
+      (_selectedSemSec["sec1"] == null || _selectedSemSec["sec1"] == "null") &&
+      (_selectedSemSec["sec2"] == null || _selectedSemSec["sec2"] == "null") &&
+      !_enabled[0] &&
+      !_enabled[1] &&
+      !_enabled[2]);
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -592,19 +619,17 @@ class _MyHomePageState extends State<MyHomePage> {
             dividerColor: Theme.of(context).colorScheme.primaryContainer,
           ),
         ),
-        body: ((_selectedSemSec["sec0"] == null ||
-            _selectedSemSec["sec0"] == "null") &&
-        (_selectedSemSec["sec1"] == null ||
-            _selectedSemSec["sec1"] == "null") &&
-        (_selectedSemSec["sec2"] == null ||
-            _selectedSemSec["sec2"] == "null") &&
-        !_enabled[0] &&
-        !_enabled[1] &&
-        !_enabled[2])?Center(child: Text("1. Sync first\n2. Set semester, section and save\n3. Back to home"),):TabBarView(children: getTabs()),
+        body: _isBlank
+            ? Center(
+                child: Text(
+                  "1. Sync first\n2. Set semester, section and save\n3. Back to home",
+                ),
+              )
+            : TabBarView(children: getTabs()),
 
         floatingActionButton: FloatingActionButton(
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          onPressed: _refresher,
+          onPressed: _isBlank ? _refresher: _refreshController.requestRefresh,
           tooltip: 'Sync',
           child: const Icon(Icons.refresh),
         ),
