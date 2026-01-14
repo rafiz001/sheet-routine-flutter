@@ -12,7 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:pull_to_refresh_flutter3/pull_to_refresh_flutter3.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 
-const appVersion = "v2.1.1";
+const appVersion = "v2.1.2";
 
 extension IndexedIterable<E> on Iterable<E> {
   /// Maps each element and its index to a new value
@@ -175,7 +175,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   final RefreshController _refreshController = RefreshController(
-    initialRefresh: true,
+    initialRefresh: false,
   );
   void _onRefresh() async {
     final bool isConnected =
@@ -504,15 +504,15 @@ class _MyHomePageState extends State<MyHomePage> {
     return list;
   }
 
-  final _isBlank =
+  @override
+  Widget build(BuildContext context) {
+  final isBlank =
       ((_selectedSemSec["sec0"] == null || _selectedSemSec["sec0"] == "null") &&
       (_selectedSemSec["sec1"] == null || _selectedSemSec["sec1"] == "null") &&
       (_selectedSemSec["sec2"] == null || _selectedSemSec["sec2"] == "null") &&
       !_enabled[0] &&
       !_enabled[1] &&
       !_enabled[2]);
-  @override
-  Widget build(BuildContext context) {
     return DefaultTabController(
       length: getTabCout(),
       child: Scaffold(
@@ -619,7 +619,7 @@ class _MyHomePageState extends State<MyHomePage> {
             dividerColor: Theme.of(context).colorScheme.primaryContainer,
           ),
         ),
-        body: _isBlank
+        body: isBlank
             ? Center(
                 child: Text(
                   "1. Sync first\n2. Set semester, section and save\n3. Back to home",
@@ -629,7 +629,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
         floatingActionButton: FloatingActionButton(
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          onPressed: _isBlank ? _refresher: _refreshController.requestRefresh,
+          onPressed: isBlank ? _refresher: _refreshController.requestRefresh,
           tooltip: 'Sync',
           child: const Icon(Icons.refresh),
         ),
