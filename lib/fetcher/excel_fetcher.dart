@@ -7,8 +7,6 @@ import 'package:flutter/services.dart' show ByteData, rootBundle;
 import 'package:sheet_routine/data/hive.dart';
 import 'package:sheet_routine/pages/google_sheet_config.dart';
 
-
-
 dynamic checkAndGet(dynamic configFromDB, String key, dynamic defaultValue) {
   return (configFromDB is Map && configFromDB.containsKey(key))
       ? configFromDB[key]
@@ -44,9 +42,8 @@ Future<dynamic> downloadFile(dynamic configFromDB) async {
     "sheet_ID",
     routineConfig["sheet_ID"],
   ); //1vJQVPX0-YypjwBAoiFcMNofKR91X8Zt57NAKlXrUre4
-  
-  var sems = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th"];
 
+  var sems = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th"];
   try {
     // Download the file
     var jsonValue = [];
@@ -84,8 +81,6 @@ Future<List<int>?> loadLocal() async {
   }
 }
 
-
-
 Future<Map<String, dynamic>> readTimeRow(
   dynamic json,
   int timeColumn,
@@ -120,6 +115,7 @@ Future<Map<String, dynamic>> readTimeRow(
   await setValueToHive("routine", "timeData", timeData);
   return {"timeRow": timeData, "lastCollumn": lastCollumn};
 }
+
 /*
 Future<List<String>> getSheetNames(Excel excel) async {
   return excel.tables.keys.toList();
@@ -158,9 +154,9 @@ Future<void> readExcelFile(
   // Traverse semesters:
   for (var s = 0; s < sheetNames.length; s++) {
     // Traverse rows:
-      var dayName = "";
-      var sem = "";
-      var sec = "";
+    var dayName = "";
+    var sem = "";
+    var sec = "";
     for (var r = timeRow + 1; r < json[s]["table"]["rows"].length; r++) {
       if (json[s]["table"]["rows"][r]['c'] != null &&
           json[s]["table"]["rows"][r]['c'][0] != null) {
@@ -204,14 +200,14 @@ Future<void> readExcelFile(
           }
         } else {
           if (!days.containsKey(dayName)) {
-              days[dayName] = {};
-            }
-            if (!days[dayName]!.containsKey(sem)) {
-              days[dayName]![sem] = {};
-            }
-            if (!days[dayName]![sem]!.containsKey(sec)) {
-              days[dayName]![sem]![sec] = [];
-            }
+            days[dayName] = {};
+          }
+          if (!days[dayName]!.containsKey(sem)) {
+            days[dayName]![sem] = {};
+          }
+          if (!days[dayName]![sem]!.containsKey(sec)) {
+            days[dayName]![sem]![sec] = [];
+          }
           var old = days[dayName]![sem]![sec];
           old!.add([null, c]);
 
@@ -307,52 +303,11 @@ Future<void> readExcelFile(
   await setValueToHive("routine", "days", days);
   await setValueToHive("routine", "syncAt", DateTime.now());
 
+  //getTeacherDetails(configFromDB);
+
   if (kDebugMode) {
-    print(days);
+   // print(days);
   }
 }
-/*
-Future<Map<String, List<String>>> getTeacherDetails(
-  Excel excel,
-  dynamic configFromDB,
-) async {
-  String teacher_sheet = checkAndGet(
-    configFromDB,
-    "teacher_sheet",
-    routineConfig["teacher_sheet"],
-  );
-  int teacher_row = checkAndGet(
-    configFromDB,
-    "teacher_row",
-    routineConfig["teacher_row"],
-  );
-  int teacher_short_code = checkAndGet(
-    configFromDB,
-    "teacher_short_code",
-    routineConfig["teacher_short_code"],
-  );
-  int teacher_name = checkAndGet(
-    configFromDB,
-    "teacher_name",
-    routineConfig["teacher_name"],
-  );
-  int teacher_contact = checkAndGet(
-    configFromDB,
-    "teacher_contact",
-    routineConfig["teacher_contact"],
-  );
-  Map<String, List<String>> output = {};
-  int i = teacher_row;
-  while (true) {
-    var row = excel.tables[teacher_sheet]!.rows[i];
-    if (row[teacher_short_code]?.value == null) break;
-    List<String> temp = [];
-    temp.add(row[teacher_name]?.value.toString() ?? "");
-    temp.add(row[teacher_contact]?.value.toString() ?? "");
-    output[row[teacher_short_code]?.value.toString() ?? ""] = temp;
 
-    i++;
-  }
-  await setValueToHive("routine", "teacher", output);
-  return output;
-}*/
+

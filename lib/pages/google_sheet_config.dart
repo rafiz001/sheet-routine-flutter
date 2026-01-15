@@ -14,7 +14,7 @@ const routineConfig = {
   "timeRow": 0,
   "dayColumn": 0,
   "sheetNames": ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th"],
-  "teacher_sheet": "Info.",
+  "teacher_sheet": "989827005",
   "teacher_row": 2,
   "teacher_short_code": 1,
   "teacher_name": 2,

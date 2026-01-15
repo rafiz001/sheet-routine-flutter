@@ -6,6 +6,7 @@ import 'package:sheet_routine/data/hive.dart';
 import 'package:sheet_routine/data/courses.dart';
 import 'package:sheet_routine/pages/google_sheet_config.dart';
 import 'package:sheet_routine/pages/settings.dart';
+import 'package:sheet_routine/pages/teachers_contact.dart';
 import 'package:sheet_routine/widgets/refresh_dialog.dart';
 import 'package:timeago_flutter/timeago_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -181,8 +182,8 @@ class _MyHomePageState extends State<MyHomePage> {
     final bool isConnected =
         await InternetConnectionChecker.instance.hasConnection;
     if (isConnected && mounted) {
-     await showDialog(context: context, builder: (context) => RefreshDialog());
-    _refreshController.refreshCompleted();
+      await showDialog(context: context, builder: (context) => RefreshDialog());
+      _refreshController.refreshCompleted();
     } else {
       _refreshController.refreshFailed();
     }
@@ -506,13 +507,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-  final isBlank =
-      ((_selectedSemSec["sec0"] == null || _selectedSemSec["sec0"] == "null") &&
-      (_selectedSemSec["sec1"] == null || _selectedSemSec["sec1"] == "null") &&
-      (_selectedSemSec["sec2"] == null || _selectedSemSec["sec2"] == "null") &&
-      !_enabled[0] &&
-      !_enabled[1] &&
-      !_enabled[2]);
+    final isBlank =
+        ((_selectedSemSec["sec0"] == null ||
+            _selectedSemSec["sec0"] == "null") &&
+        (_selectedSemSec["sec1"] == null ||
+            _selectedSemSec["sec1"] == "null") &&
+        (_selectedSemSec["sec2"] == null ||
+            _selectedSemSec["sec2"] == "null") &&
+        !_enabled[0] &&
+        !_enabled[1] &&
+        !_enabled[2]);
     return DefaultTabController(
       length: getTabCout(),
       child: Scaffold(
@@ -603,6 +607,17 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           actions: [
             IconButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => TeachersContact()),
+                );
+              },
+              tooltip: "Teachers",
+              icon: Icon(Icons.contacts_outlined),
+            ),
+            IconButton(
+              tooltip: "Live",
               icon: Icon(Icons.public),
               onPressed: () {
                 launchUrl(
@@ -629,7 +644,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
         floatingActionButton: FloatingActionButton(
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          onPressed: isBlank ? _refresher: _refreshController.requestRefresh,
+          onPressed: isBlank ? _refresher : _refreshController.requestRefresh,
           tooltip: 'Sync',
           child: const Icon(Icons.refresh),
         ),
