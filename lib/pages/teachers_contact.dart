@@ -98,7 +98,7 @@ class _TeachersContactState extends State<TeachersContact> {
     }
   }
 
-  Future<List<dynamic>> _getConfig() async {
+  Future<List<dynamic>?> _getConfig() async {
     final teachers = await getValueFromHive("routine", "teachers", null);
     return teachers;
   }
@@ -124,8 +124,8 @@ class _TeachersContactState extends State<TeachersContact> {
             onPressed: () {
               setState(() {
                 _isSearching = !_isSearching;
-                _searchText="";
-                searchController.text="";
+                _searchText = "";
+                searchController.text = "";
               });
             },
             icon: _isSearching ? Icon(Icons.close) : Icon(Icons.search),
@@ -146,7 +146,13 @@ class _TeachersContactState extends State<TeachersContact> {
           }
           var teachers = snapshot.data;
           if (teachers != null) {
-            teachers = teachers.where((item) => (item[0] as String).toLowerCase().contains(_searchText)).toList();
+            teachers = teachers
+                .where(
+                  (item) => (item[0] as String).toLowerCase().contains(
+                    _searchText.toLowerCase(),
+                  ),
+                )
+                .toList();
           }
           return Padding(
             padding: EdgeInsetsGeometry.all(12),
