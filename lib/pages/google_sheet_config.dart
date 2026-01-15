@@ -64,40 +64,7 @@ class _GoogleSheetConfigState extends State<GoogleSheetConfig> {
       appBar: AppBar(
         title: Text("Google Sheet Config"),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        actions: [
-          IconButton(
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    content: Text("Are you sure want to delete the database?"),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Hive.deleteFromDisk();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("Database deleted. Restart the app.")),
-                          );
-                          
-                          Navigator.pop(context);
-                        },
-                        child: Text("Yes"),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: Text("No"),
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-            icon: Icon(Icons.delete),
-          ),
-        ],
+        
       ),
       body: SingleChildScrollView(
         child: Column(

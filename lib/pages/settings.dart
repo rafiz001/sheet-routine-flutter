@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:sheet_routine/data/hive.dart';
 import 'package:sheet_routine/main.dart';
 import 'package:sheet_routine/pages/google_sheet_config.dart';
@@ -120,6 +123,45 @@ class _SettingsState extends State<Settings> {
       appBar: AppBar(
         title: Text("Settings"),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        actions: [
+          IconButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    content: Text("Are you sure want to delete the database?"),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Hive.deleteFromDisk();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                "Database deleted. Restart the app.",
+                              ),
+                            ),
+                          );
+
+                          Navigator.pop(context);
+                          exit(0);
+                        },
+                        child: Text("Yes"),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text("No"),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+            icon: Icon(Icons.delete),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
