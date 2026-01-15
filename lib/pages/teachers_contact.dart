@@ -14,6 +14,9 @@ class TeachersContact extends StatefulWidget {
 
 class _TeachersContactState extends State<TeachersContact> {
   bool _isLoading = false;
+  bool _isSearching = false;
+  String _searchText = "";
+  TextEditingController searchController = TextEditingController();
   String replaceCommasInQuotedPairs(String input) {
     final result = StringBuffer();
     bool insideQuotes = false;
@@ -95,10 +98,8 @@ class _TeachersContactState extends State<TeachersContact> {
     }
   }
 
-  Future<List<List<String>>?>? _getConfig() async {
-    final teachers =
-        await getValueFromHive("routine", "teachers", null)
-            as List<List<String>>?;
+  Future<List<dynamic>> _getConfig() async {
+    final teachers = await getValueFromHive("routine", "teachers", null);
     return teachers;
   }
 
@@ -106,8 +107,30 @@ class _TeachersContactState extends State<TeachersContact> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Teachers"),
+        title: _isSearching
+            ? TextField(
+                controller: searchController,
+                decoration: InputDecoration(hintText: "Input Teacher Name"),
+                onChanged: (value) {
+                  setState(() {
+                    _searchText = value;
+                  });
+                },
+              )
+            : Text("Teachers"),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        actions: [
+          IconButton(
+            onPressed: () {
+              setState(() {
+                _isSearching = !_isSearching;
+                _searchText="";
+                searchController.text="";
+              });
+            },
+            icon: _isSearching ? Icon(Icons.close) : Icon(Icons.search),
+          ),
+        ],
       ),
       body: FutureBuilder(
         future: _getConfig(),
@@ -121,7 +144,10 @@ class _TeachersContactState extends State<TeachersContact> {
           if (snapshot.data == null) {
             return Center(child: Text('Sync Teachers First'));
           }
-          final teachers = snapshot.data;
+          var teachers = snapshot.data;
+          if (teachers != null) {
+            teachers = teachers.where((item) => (item[0] as String).toLowerCase().contains(_searchText)).toList();
+          }
           return Padding(
             padding: EdgeInsetsGeometry.all(12),
             child: ListView.builder(
@@ -132,13 +158,13 @@ class _TeachersContactState extends State<TeachersContact> {
                   child: Column(
                     spacing: 10,
                     children: [
-                      Text(teachers[index][0], style: TextStyle(fontSize: 20)),
+                      Text(teachers![index][0], style: TextStyle(fontSize: 20)),
                       Divider(),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text("Designation"),
-                          Text(teachers[index][1]),
+                          Text(teachers![index][1]),
                         ],
                       ),
                       Row(
@@ -152,14 +178,14 @@ class _TeachersContactState extends State<TeachersContact> {
                       GestureDetector(
                         onLongPress: () async {
                           await Clipboard.setData(
-                            ClipboardData(text: teachers[index][4]),
+                            ClipboardData(text: teachers![index][4]),
                           );
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text("Copied to clipboard")),
                           );
                         },
                         onTap: () {
-                          launchUrl(Uri.parse("tel:${teachers[index][4]}"));
+                          launchUrl(Uri.parse("tel:${teachers![index][4]}"));
                         },
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
