@@ -133,8 +133,8 @@ class _SettingsState extends State<Settings> {
                     content: Text("Are you sure want to delete the database?"),
                     actions: [
                       TextButton(
-                        onPressed: () {
-                          Hive.deleteFromDisk();
+                        onPressed: () async{
+                          await Hive.deleteFromDisk();
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
