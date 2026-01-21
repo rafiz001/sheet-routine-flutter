@@ -13,7 +13,6 @@ class RefreshDialog extends StatefulWidget {
   _RefreshDialogState createState() => _RefreshDialogState();
 }
 
-int _c = -1;
 dynamic _file;
 
 // bool _jobExecuted = false;
@@ -27,6 +26,48 @@ List<String> _msg = [
   "Reading Teacher Details",
   "",
 ];
+Future<bool> executer(BuildContext cntx) async {
+  var result = false;
+  // if(_jobExecuted) return;
+  var config = await getValueFromHive("settings", "config", null);
+
+  int timeRow = (config is Map && config.containsKey("timeRow"))
+      ? config["timeRow"]
+      : routineConfig["timeRow"];
+  int timeColumn = (config is Map && config.containsKey("timeColumn"))
+      ? config["timeColumn"]
+      : routineConfig["timeColumn"];
+
+  // _file = await loadLocal();
+  // loadLocal().then((value) {
+  await downloadFile(config).then((value) async{
+    _file = value;
+
+    if (_file == []) {
+
+      return false;
+    }
+    if (kDebugMode) {
+      print("download done!");
+    }
+
+    await readTimeRow(_file, timeColumn, timeRow).then((value) async{
+      _timeRowData = value;
+      if (kDebugMode) {
+        print(_timeRowData);
+      }
+      if (_timeRowData["lastCollumn"] != null) {
+        await readExcelFile(_file, _timeRowData["lastCollumn"], config).then((value) {
+          result = true;
+        });
+      }
+    });
+
+    //return false;
+  });
+  return result;
+}
+
 /*
 Widget _dialogElement(int val, String name, BuildContext context) {
   return Row(
@@ -44,101 +85,14 @@ class _RefreshDialogState extends State<RefreshDialog> {
   void initState() {
     super.initState();
     // Execute functions after the first frame is rendered
-    WidgetsBinding.instance.addPostFrameCallback((duration) {
-      if (kDebugMode) {
-        print("callback $_c");
-      }
-      _c == -1 ? _c = 0 : print("c not equal -1 it is: $_c");
-      _executer();
-    });
-  }
-
-  _executer() async {
-    // if(_jobExecuted) return;
-    var config = await getValueFromHive("settings", "config", null);
-
-    int timeRow = (config is Map && config.containsKey("timeRow"))
-        ? config["timeRow"]
-        : routineConfig["timeRow"];
-    int timeColumn = (config is Map && config.containsKey("timeColumn"))
-        ? config["timeColumn"]
-        : routineConfig["timeColumn"];
-
-    if (kDebugMode) {
-      print("c= $_c");
-    }
-    if (_c == 0) {
-      // _file = await loadLocal();
-      // loadLocal().then((value) {
-      downloadFile(config).then((value) {
-        _file = value;
-        // if(kDebugMode){
-        //   print(_file);
-        // }
-        if (_file == []) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text("Download error.")));
-          // Navigator.pop(context);
-          return;
-        }
-        if (kDebugMode) {
-          print("download done!");
-        }
-        setState(() {
-          _c = 2;
-        });
-
-        return;
-      });
-    }
-
-    if (_c == 2) {
-      readTimeRow(_file, timeColumn, timeRow).then((value) {
-        _timeRowData = value;
-        if (kDebugMode) {
-          print(_timeRowData);
-        }
-        if (_timeRowData["lastCollumn"] != null) {
-          setState(() {
-            _c = 3; //3;
-          });
-          return;
-        }
-      });
-    }
-    if (_c == 3) {
-      readExcelFile(_file, _timeRowData["lastCollumn"], config).then((value) {
-        setState(() {
-          _c = -1;
-        });
-        MyApp.restartApp(context);
-        if (mounted && Navigator.canPop(context)) {
-          Navigator.pop(context);
-        }
-
-        return;
-      });
-    }
-    /*
-    if (_c == 4) {
-      getTeacherDetails(xl!, config).then((teachers) {
-        if (kDebugMode) {
-          print(teachers);
-        }
-        setState(() {
-          _c = -1;
-        });
-        MyApp.restartApp(context);
-        Navigator.pop(context);
-        return;
-      });
-    }*/
+    // WidgetsBinding.instance.addPostFrameCallback((duration) {
+    //   executer();
+    // });
   }
 
   @override
   Widget build(BuildContext context) {
-    _executer();
+    executer(context);
     return PopScope(
       canPop: false,
       child: AlertDialog(
@@ -149,13 +103,12 @@ class _RefreshDialogState extends State<RefreshDialog> {
           children: [
             CircularProgressIndicator(),
             Padding(padding: EdgeInsetsGeometry.only(right: 10)),
-            Text((_c > -1 ? "${_msg[_c]}..." : "Initializing...")),
+            Text(("Hold on.")),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () {
-              _c = -1;
               Navigator.pop(context);
             }, // Close dialog
             child: const Text('Close'),

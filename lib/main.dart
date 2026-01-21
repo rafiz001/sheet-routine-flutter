@@ -59,6 +59,7 @@ List<String> _sheetList = routineConfig["sheetNames"] as List<String>;
 Map<String, dynamic> _days = {};
 List<String> _timeData = [];
 Map<String, dynamic> _teacher = {};
+var isSyncLoading = false;
 
 class _MyAppState extends State<MyApp> {
   Future<void> _restartSequence() async {
@@ -71,6 +72,7 @@ class _MyAppState extends State<MyApp> {
     await Hive.openBox('routine');
     // Reload data
     await _loadDefaultValue();
+    isSyncLoading = false;
   }
 
   Key key = UniqueKey();
@@ -165,14 +167,33 @@ class MyHomePage extends StatefulWidget {
   final String? title;
   final String? sheetID;
   final DateTime? syncAt;
-
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  void _refresher() {
-    showDialog(context: context, builder: (context) => RefreshDialog());
+  void _refresher() async {
+    // showDialog(context: context, builder: (context) => RefreshDialog());
+    setState(() {
+      isSyncLoading = true;
+    });
+
+    await executer(context).then((value) {
+      if (value == true) {
+        setState(() {
+          isSyncLoading = false;
+        });
+        if (mounted) {
+          MyApp.restartApp(context);
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Something went wrong...")));
+        }
+      }
+    });
   }
 
   final RefreshController _refreshController = RefreshController(
@@ -182,8 +203,14 @@ class _MyHomePageState extends State<MyHomePage> {
     final bool isConnected =
         await InternetConnectionChecker.instance.hasConnection;
     if (isConnected && mounted) {
-      await showDialog(context: context, builder: (context) => RefreshDialog());
-      _refreshController.refreshCompleted();
+      //await showDialog(context: context, builder: (context) => RefreshDialog());
+      await executer(context).then((value) {
+        if (value == true) {
+          _refreshController.refreshCompleted();
+        } else {
+          _refreshController.refreshFailed();
+        }
+      });
     } else {
       _refreshController.refreshFailed();
     }
@@ -646,7 +673,9 @@ class _MyHomePageState extends State<MyHomePage> {
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           onPressed: isBlank ? _refresher : _refreshController.requestRefresh,
           tooltip: 'Sync',
-          child: const Icon(Icons.refresh),
+          child: isSyncLoading
+              ? CircularProgressIndicator()
+              : Icon(Icons.refresh),
         ),
       ),
     );
