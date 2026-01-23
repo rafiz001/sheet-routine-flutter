@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sheet_routine/data/hive.dart';
 import 'package:sheet_routine/data/courses.dart';
 import 'package:sheet_routine/pages/google_sheet_config.dart';
+import 'package:sheet_routine/pages/roomCheacker.dart';
 import 'package:sheet_routine/pages/settings.dart';
 import 'package:sheet_routine/pages/teachersRoutine.dart';
 import 'package:sheet_routine/pages/teachers_contact.dart';
@@ -14,7 +15,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:pull_to_refresh_flutter3/pull_to_refresh_flutter3.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 
-const appVersion = "v2.1.4";
+const appVersion = "v2.1.5";
 
 extension IndexedIterable<E> on Iterable<E> {
   /// Maps each element and its index to a new value
@@ -643,33 +644,44 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 Navigator.push(
                   context,
+                  MaterialPageRoute(builder: (context) => Roomcheacker()),
+                );
+              },
+              tooltip: "Room Filter",
+              icon: Icon(Icons.meeting_room_outlined),
+            ),
+            IconButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
                   MaterialPageRoute(builder: (context) => TeachersRoutine()),
                 );
               },
               tooltip: "Teachers Routine",
               icon: Icon(Icons.cases_outlined),
             ),
-            IconButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => TeachersContact()),
-                );
-              },
-              tooltip: "Teachers",
-              icon: Icon(Icons.contacts_outlined),
-            ),
-            IconButton(
-              tooltip: "Live",
-              icon: Icon(Icons.public),
-              onPressed: () {
+            
+            PopupMenuButton(
+              onSelected: (value) {
+                if(value=="live"){
                 launchUrl(
                   Uri.parse(
                     "https://docs.google.com/spreadsheets/d/${widget.sheetID}",
                   ),
                 );
+                }
+                if(value=="TeachersInfo"){
+                  Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => TeachersContact()),
+                );
+                }
               },
-            ),
+            itemBuilder: (context) => [
+              PopupMenuItem(value: "TeachersInfo", child: Text("Teachers Info")),
+              PopupMenuItem(value: "live", child: Text("Live")),
+            ],
+          ),
           ],
           bottom: TabBar(
             tabs: getTabList(),
