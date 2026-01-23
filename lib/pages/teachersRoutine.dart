@@ -82,6 +82,8 @@ class _TeachersRoutineState extends State<TeachersRoutine> {
             }
 
             var teachersList = snapshot.data!.keys.toList();
+            teachersList.sort((a,b)=> a.compareTo(b));
+
             teachersRoutine = snapshot.data;
             return Autocomplete(
               optionsBuilder: (textEditingValue) {
@@ -100,7 +102,7 @@ class _TeachersRoutineState extends State<TeachersRoutine> {
                       controller: controller,
                       focusNode: focusNode,
                       decoration: InputDecoration(
-                        border: OutlineInputBorder(),
+                        //border: OutlineInputBorder(),
                         labelText: selectedTeacher ?? 'Select Teacher',
                         hintText: 'Select Teacher',
                         suffixIcon: Icon(Icons.search),
@@ -112,14 +114,7 @@ class _TeachersRoutineState extends State<TeachersRoutine> {
         ),
 
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        actions: [
-          PopupMenuButton(
-            itemBuilder: (context) => [
-              PopupMenuItem(value: "d1", child: Text(" d d")),
-              PopupMenuItem(value: "d1", child: Text(" d f")),
-            ],
-          ),
-        ],
+        
       ),
       body: selectedTeacher != null && teachersRoutine != null
           ? ListView.builder(
@@ -128,7 +123,8 @@ class _TeachersRoutineState extends State<TeachersRoutine> {
                 var routineSorted = teachersRoutine![selectedTeacher]!
                     .where((element) => element[0] == days[index])
                     .toList();
-
+                routineSorted.sort((a, b) => (a[1] as int).compareTo(b[1]));
+                  
                 if (routineSorted.isEmpty) {
                   return SizedBox.shrink();
                 }
