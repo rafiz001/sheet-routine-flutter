@@ -151,6 +151,7 @@ Future<void> readExcelFile(
   Map<String, Map<String, Map<String, List<dynamic>>>> days =
       {}; //sunday,1st,A,[[CSE 121,2]]
   Map<String, List<dynamic>> teachersRoutine = {};
+  Map<String, List<dynamic>> roomFilter = {};
 
   // Traverse semesters:
   for (var s = 0; s < sheetNames.length; s++) {
@@ -179,6 +180,7 @@ Future<void> readExcelFile(
             sem = temp3[0].trim();
             sec = temp3[1].split("Sec")[0].trim();
             var teachers = cellPortions[0].split(",");
+            var room = cellPortions[2].trim();
 
             //var sub = temp1[0].trim();
             //print([dayName, sem, sec]);
@@ -209,6 +211,13 @@ Future<void> readExcelFile(
               }
             }
             // teacher add done
+            // roomFilter start
+            if (roomFilter.containsKey(room)) {
+              roomFilter[room]!.add([dayName, c, cell]);
+            } else {
+              roomFilter[room] = [[dayName, c, cell]];
+            }
+            // roomFilter done
           } else {
             var old = days[dayName]![sem]![sec];
             old!.add([null, c]);
@@ -319,6 +328,7 @@ Future<void> readExcelFile(
   */
   await setValueToHive("routine", "days", days);
   await setValueToHive("routine", "teachersRoutine", teachersRoutine);
+  await setValueToHive("routine", "roomFilter", roomFilter);
   await setValueToHive("routine", "syncAt", DateTime.now());
 
   //getTeacherDetails(configFromDB);
