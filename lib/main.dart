@@ -6,6 +6,7 @@ import 'package:sheet_routine/data/hive.dart';
 import 'package:sheet_routine/data/courses.dart';
 import 'package:sheet_routine/pages/google_sheet_config.dart';
 import 'package:sheet_routine/pages/settings.dart';
+import 'package:sheet_routine/pages/teachersRoutine.dart';
 import 'package:sheet_routine/pages/teachers_contact.dart';
 import 'package:sheet_routine/widgets/refresh_dialog.dart';
 import 'package:timeago_flutter/timeago_flutter.dart';
@@ -207,6 +208,9 @@ class _MyHomePageState extends State<MyHomePage> {
       await executer(context).then((value) {
         if (value == true) {
           _refreshController.refreshCompleted();
+        if (mounted) {
+          MyApp.restartApp(context);
+        }
         } else {
           _refreshController.refreshFailed();
         }
@@ -216,17 +220,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  String subPreProcessor(String input) {
-    var temp1 = input.split("\n");
-    var sub = temp1[1];
-    var teacher = temp1[0];
-    var room = temp1[2];
-    var text = teacher.split(",");
-    if (text.length > 1) {
-      teacher = "${text[0].trim()}\n${text[1].trim()}";
-    }
-    return "$sub\n$teacher\n$room";
-  }
+ 
 
   int getTabCout() {
     int i = 0;
@@ -279,7 +273,10 @@ class _MyHomePageState extends State<MyHomePage> {
             return (element.value[0] != "null" && element.value[0] != null);
           })
           .map(
-            (entry) => Column(
+            (entry){
+              final int startingTimePlussed = entry.value[1];
+              return 
+             Column(
               children: [
                 Divider(color: Theme.of(context).colorScheme.inverseSurface),
                 Padding(padding: EdgeInsetsGeometry.only(bottom: 10)),
@@ -288,7 +285,15 @@ class _MyHomePageState extends State<MyHomePage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   mainAxisSize: MainAxisSize.max,
                   children: [
-                    Text(_timeData[entry.value[1] - 1]),
+                    Column(children: [
+                    Text(_timeData[startingTimePlussed - 1]),
+                    Text("|"),
+                    Text(
+                      _timeData.length > startingTimePlussed
+                          ? (_timeData[startingTimePlussed])
+                          : "End",
+                    ),
+                    ],),
 
                     InkWell(
                       onTap: () {
@@ -430,7 +435,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 Padding(padding: EdgeInsetsGeometry.only(bottom: 10)),
               ],
-            ),
+            );
+            }
           )
           .toList();
     } catch (e) {
@@ -637,6 +643,16 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 Navigator.push(
                   context,
+                  MaterialPageRoute(builder: (context) => TeachersRoutine()),
+                );
+              },
+              tooltip: "Teachers Routine",
+              icon: Icon(Icons.cases_outlined),
+            ),
+            IconButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
                   MaterialPageRoute(builder: (context) => TeachersContact()),
                 );
               },
@@ -677,6 +693,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ? CircularProgressIndicator()
               : Icon(Icons.refresh),
         ),
+
       ),
     );
   }

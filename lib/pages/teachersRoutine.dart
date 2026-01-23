@@ -12,6 +12,18 @@ class TeachersRoutine extends StatefulWidget {
   _TeachersRoutineState createState() => _TeachersRoutineState();
 }
 
+String subPreProcessor(String input) {
+  var temp1 = input.split("\n");
+  var sub = temp1[1];
+  var teacher = temp1[0];
+  var room = temp1[2];
+  var text = teacher.split(",");
+  if (text.length > 1) {
+    teacher = "${text[0].trim()}\n${text[1].trim()}";
+  }
+  return "$sub\n$teacher\n$room";
+}
+
 class _TeachersRoutineState extends State<TeachersRoutine> {
   final List<String> days = [
     'Sunday',
@@ -34,9 +46,20 @@ class _TeachersRoutineState extends State<TeachersRoutine> {
 
     return Map<String, List<dynamic>>.from(teachersRoutine);
   }
-  void _getTime() async{
+
+  void _getTime() async {
     final time = await getValueFromHive("routine", "timeData", null);
-    timingData = List<String>.from(time);
+    if (time != null) {
+      timingData = List<String>.from(time);
+    }
+    else{
+      if(mounted){
+        Navigator.pop(context);
+        ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Sync First!")));
+      }
+    }
   }
 
   @override
@@ -57,7 +80,7 @@ class _TeachersRoutineState extends State<TeachersRoutine> {
             if (snapshot.data == null) {
               return Text('Sync Routine First');
             }
-            
+
             var teachersList = snapshot.data!.keys.toList();
             teachersRoutine = snapshot.data;
             return Autocomplete(
@@ -130,18 +153,40 @@ class _TeachersRoutineState extends State<TeachersRoutine> {
                       physics: NeverScrollableScrollPhysics(),
                       itemCount: routineSorted.length,
                       itemBuilder: (BuildContext context, int ind) {
-                        return Card(child: Column(children: [
-                          Text(timingData![routineSorted[ind][1]-1]),
-                          Divider(),
-                          Text(routineSorted[ind][2])
-                        ],));
+                        final int startingTimePlussed = routineSorted[ind][1];
+                        return Card(
+                          child: Padding(
+                            padding: EdgeInsetsGeometry.all(7),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  children: [
+                                    Text(timingData![startingTimePlussed - 1]),
+                                    Text("|"),
+                                    Text(
+                                      timingData!.length > startingTimePlussed
+                                          ? (timingData![startingTimePlussed])
+                                          : "End",
+                                    ),
+                                  ],
+                                ),
+                                Divider(),
+                                Text(
+                                  subPreProcessor(routineSorted[ind][2]),
+                                  textAlign: TextAlign.right,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
                       },
                     ),
                   ],
                 );
               },
             )
-          : Center(child: Text("data")),
+          : Center(child: Text("Select a teacher name.")),
     );
   }
 }
