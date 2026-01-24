@@ -30,6 +30,7 @@ class Settings extends StatefulWidget {
 }
 
 String selectedTheme = "Red";
+bool autoTeacher = false;
 Map<String, String?> selectedSemSec = {
   "sem0": null,
   "sec0": null,
@@ -66,6 +67,11 @@ class _SettingsState extends State<Settings> {
   }
 
   Future<void> _loadDefaultValue() async {
+    final autoTeacherDb = await getValueFromHive(
+      "settings",
+      "autoTeacher",
+      false,
+    );
     final savedThemeValue = await getValueFromHive("settings", "theme", "Teal");
     final tempDays = await getValueFromHive("routine", "days", null);
     final savedSelectedSemSec = await getValueFromHive(
@@ -76,6 +82,7 @@ class _SettingsState extends State<Settings> {
     final savedEnabled = await getValueFromHive("settings", "enabled", null);
     setState(() {
       selectedTheme = savedThemeValue;
+      autoTeacher = autoTeacherDb;
       //getting semesters
 
       if (tempDays != null &&
@@ -133,7 +140,7 @@ class _SettingsState extends State<Settings> {
                     content: Text("Are you sure want to delete the database?"),
                     actions: [
                       TextButton(
-                        onPressed: () async{
+                        onPressed: () async {
                           await Hive.deleteFromDisk();
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
@@ -411,6 +418,20 @@ class _SettingsState extends State<Settings> {
             ),
             Divider(indent: 15, endIndent: 15),
             Padding(padding: EdgeInsetsGeometry.only(bottom: 10)),
+            ListTile(
+              leading: Icon(Icons.cases_outlined),
+              title: Text("Teacher Mode"),
+              trailing: Switch(
+                value: autoTeacher,
+                onChanged: (value) {
+                  setState(() {
+                    autoTeacher = value;
+                    setValueToHive("settings", "autoTeacher", value);
+                  });
+                },
+              ),
+            ),
+            Divider(indent: 15, endIndent: 15),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

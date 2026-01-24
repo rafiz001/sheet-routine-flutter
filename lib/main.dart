@@ -15,7 +15,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:pull_to_refresh_flutter3/pull_to_refresh_flutter3.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 
-const appVersion = "v2.1.5";
+const appVersion = "v2.1.6";
 
 extension IndexedIterable<E> on Iterable<E> {
   /// Maps each element and its index to a new value
@@ -62,6 +62,7 @@ Map<String, dynamic> _days = {};
 List<String> _timeData = [];
 Map<String, dynamic> _teacher = {};
 var isSyncLoading = false;
+bool _autoTeacher = false;
 
 class _MyAppState extends State<MyApp> {
   Future<void> _restartSequence() async {
@@ -103,9 +104,16 @@ class _MyAppState extends State<MyApp> {
       null,
     );
     final days = await getValueFromHive("routine", "days", null);
+    final autoTeacherDb = await getValueFromHive(
+      "settings",
+      "autoTeacher",
+      false,
+    );
+    
     final timeData = await getValueFromHive("routine", "timeData", null);
     final tchr = await getValueFromHive("routine", "teacher", null);
     setState(() {
+
       _seedColor = seedC;
       if (config != null) {
         _title = config["routine_name"];
@@ -129,6 +137,9 @@ class _MyAppState extends State<MyApp> {
       }
       if (tchr != null) {
         _teacher = Map<String, dynamic>.from(tchr);
+      }
+      if(autoTeacherDb!=null){
+        _autoTeacher = autoTeacherDb;
       }
       _loading = false;
     });
@@ -209,9 +220,9 @@ class _MyHomePageState extends State<MyHomePage> {
       await executer(context).then((value) {
         if (value == true) {
           _refreshController.refreshCompleted();
-        if (mounted) {
-          MyApp.restartApp(context);
-        }
+          if (mounted) {
+            MyApp.restartApp(context);
+          }
         } else {
           _refreshController.refreshFailed();
         }
@@ -220,8 +231,6 @@ class _MyHomePageState extends State<MyHomePage> {
       _refreshController.refreshFailed();
     }
   }
-
- 
 
   int getTabCout() {
     int i = 0;
@@ -273,11 +282,9 @@ class _MyHomePageState extends State<MyHomePage> {
           .where((element) {
             return (element.value[0] != "null" && element.value[0] != null);
           })
-          .map(
-            (entry){
-              final int startingTimePlussed = entry.value[1];
-              return 
-             Column(
+          .map((entry) {
+            final int startingTimePlussed = entry.value[1];
+            return Column(
               children: [
                 Divider(color: Theme.of(context).colorScheme.inverseSurface),
                 Padding(padding: EdgeInsetsGeometry.only(bottom: 10)),
@@ -286,15 +293,17 @@ class _MyHomePageState extends State<MyHomePage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   mainAxisSize: MainAxisSize.max,
                   children: [
-                    Column(children: [
-                    Text(_timeData[startingTimePlussed - 1]),
-                    Text("|"),
-                    Text(
-                      _timeData.length > startingTimePlussed
-                          ? (_timeData[startingTimePlussed])
-                          : "End",
+                    Column(
+                      children: [
+                        Text(_timeData[startingTimePlussed - 1]),
+                        Text("|"),
+                        Text(
+                          _timeData.length > startingTimePlussed
+                              ? (_timeData[startingTimePlussed])
+                              : "End",
+                        ),
+                      ],
                     ),
-                    ],),
 
                     InkWell(
                       onTap: () {
@@ -437,8 +446,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 Padding(padding: EdgeInsetsGeometry.only(bottom: 10)),
               ],
             );
-            }
-          )
+          })
           .toList();
     } catch (e) {
       if (kDebugMode) {
@@ -551,6 +559,14 @@ class _MyHomePageState extends State<MyHomePage> {
         !_enabled[0] &&
         !_enabled[1] &&
         !_enabled[2]);
+    if (_days != null && _autoTeacher == true && mounted && !Navigator.canPop(context)) {
+    Future.delayed(Duration(milliseconds: 2), () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => TeachersRoutine()),
+      );
+    });
+    }
     return DefaultTabController(
       length: getTabCout(),
       child: Scaffold(
@@ -660,28 +676,31 @@ class _MyHomePageState extends State<MyHomePage> {
               tooltip: "Teachers Routine",
               icon: Icon(Icons.cases_outlined),
             ),
-            
+
             PopupMenuButton(
               onSelected: (value) {
-                if(value=="live"){
-                launchUrl(
-                  Uri.parse(
-                    "https://docs.google.com/spreadsheets/d/${widget.sheetID}",
-                  ),
-                );
+                if (value == "live") {
+                  launchUrl(
+                    Uri.parse(
+                      "https://docs.google.com/spreadsheets/d/${widget.sheetID}",
+                    ),
+                  );
                 }
-                if(value=="TeachersInfo"){
+                if (value == "TeachersInfo") {
                   Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => TeachersContact()),
-                );
+                    context,
+                    MaterialPageRoute(builder: (context) => TeachersContact()),
+                  );
                 }
               },
-            itemBuilder: (context) => [
-              PopupMenuItem(value: "TeachersInfo", child: Text("Teachers Info")),
-              PopupMenuItem(value: "live", child: Text("Live")),
-            ],
-          ),
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: "TeachersInfo",
+                  child: Text("Teachers Info"),
+                ),
+                PopupMenuItem(value: "live", child: Text("Live")),
+              ],
+            ),
           ],
           bottom: TabBar(
             tabs: getTabList(),
@@ -705,7 +724,6 @@ class _MyHomePageState extends State<MyHomePage> {
               ? CircularProgressIndicator()
               : Icon(Icons.refresh),
         ),
-
       ),
     );
   }
