@@ -103,7 +103,7 @@ class _GoogleSheetConfigState extends State<GoogleSheetConfig> {
                     ],
                   ),
                 ),
-                Padding(padding: EdgeInsetsGeometry.only(right: 7)),
+                /*Padding(padding: EdgeInsetsGeometry.only(right: 7)),
                 OutlinedButton(
                   onPressed: () {
                     showDialog(
@@ -118,7 +118,7 @@ class _GoogleSheetConfigState extends State<GoogleSheetConfig> {
                       Text("Sync"),
                     ],
                   ),
-                ),
+                ),*/
               ],
             ),
           ],
