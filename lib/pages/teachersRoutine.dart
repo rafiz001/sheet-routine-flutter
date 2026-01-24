@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sheet_routine/data/hive.dart';
 import 'package:sheet_routine/fetcher/excel_fetcher.dart';
+import 'package:sheet_routine/main.dart';
 import 'package:sheet_routine/pages/google_sheet_config.dart';
+import 'package:sheet_routine/widgets/refresh_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 
@@ -25,6 +27,7 @@ String subPreProcessor(String input) {
 }
 
 class _TeachersRoutineState extends State<TeachersRoutine> {
+  var isSyncLoading = false;
   final List<String> days = [
     'Sunday',
     'Monday',
@@ -49,19 +52,48 @@ class _TeachersRoutineState extends State<TeachersRoutine> {
 
   void _getTime() async {
     final time = await getValueFromHive("routine", "timeData", null);
+    final teacherNameDb = await getValueFromHive(
+      "settings",
+      "teacherName",
+      null,
+    );
+    if (teacherNameDb != null) {
+      selectedTeacher = teacherNameDb;
+    }
     if (time != null) {
       timingData = List<String>.from(time);
-    }
-    else{
-      if(mounted){
+    } else {
+      if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text("Sync First!")));
+          context,
+        ).showSnackBar(SnackBar(content: Text("Sync First!")));
       }
     }
   }
+  void _refresher() async {
+    // showDialog(context: context, builder: (context) => RefreshDialog());
+    setState(() {
+      isSyncLoading = true;
+    });
 
+    await executer(context).then((value) {
+      if (value == true) {
+        setState(() {
+          isSyncLoading = false;
+        });
+        if (mounted) {
+          MyApp.restartApp(context);
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Something went wrong...")));
+        }
+      }
+    });
+  }
   @override
   Widget build(BuildContext context) {
     _getTime();
@@ -82,7 +114,7 @@ class _TeachersRoutineState extends State<TeachersRoutine> {
             }
 
             var teachersList = snapshot.data!.keys.toList();
-            teachersList.sort((a,b)=> a.compareTo(b));
+            teachersList.sort((a, b) => a.compareTo(b));
 
             teachersRoutine = snapshot.data;
             return Autocomplete(
@@ -95,6 +127,7 @@ class _TeachersRoutineState extends State<TeachersRoutine> {
               },
               onSelected: (item) => setState(() {
                 selectedTeacher = item;
+                setValueToHive("settings", "teacherName", item);
               }),
               fieldViewBuilder:
                   (context, controller, focusNode, onFieldSubmitted) {
@@ -114,75 +147,109 @@ class _TeachersRoutineState extends State<TeachersRoutine> {
         ),
 
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        
       ),
-      body: selectedTeacher != null && teachersRoutine != null
+      body: 
+      FutureBuilder(future: _getConfig(), builder: 
+      (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return CircularProgressIndicator();
+            }
+            if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
+            }
+            if (snapshot.data == null) {
+              return Text('Sync Routine First');
+            }
+
+            teachersRoutine = snapshot.data;
+
+
+
+      return 
+      
+      selectedTeacher != null && teachersRoutine != null
           ? ListView.builder(
+            padding: EdgeInsets.only(bottom: 100),
               itemCount: days.length,
               itemBuilder: (cntx, index) {
                 var routineSorted = teachersRoutine![selectedTeacher]!
                     .where((element) => element[0] == days[index])
                     .toList();
                 routineSorted.sort((a, b) => (a[1] as int).compareTo(b[1]));
-                  
+
                 if (routineSorted.isEmpty) {
                   return SizedBox.shrink();
                 }
 
-                return Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      child: Text(
-                        days[index],
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                return Card(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        child: Text(
+                          days[index],
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: routineSorted.length,
-                      itemBuilder: (BuildContext context, int ind) {
-                        final int startingTimePlussed = routineSorted[ind][1];
-                        return Card(
-                          child: Padding(
-                            padding: EdgeInsetsGeometry.all(7),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Column(
-                                  children: [
-                                    Text(timingData![startingTimePlussed - 1]),
-                                    Text("|"),
-                                    Text(
-                                      timingData!.length > startingTimePlussed
-                                          ? (timingData![startingTimePlussed])
-                                          : "End",
-                                    ),
-                                  ],
-                                ),
-                                Divider(),
-                                Text(
-                                  subPreProcessor(routineSorted[ind][2]),
-                                  textAlign: TextAlign.right,
-                                ),
-                              ],
+                      ListView.builder(
+                        
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: routineSorted.length,
+                        itemBuilder: (BuildContext context, int ind) {
+                          final int startingTimePlussed = routineSorted[ind][1];
+                          return Card(
+                            color: Theme.of(context).colorScheme.inversePrimary,
+                            child: Padding(
+                              padding: EdgeInsetsGeometry.all(7),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    children: [
+                                      Text(timingData![startingTimePlussed - 1]),
+                                      Text("|"),
+                                      Text(
+                                        timingData!.length > startingTimePlussed
+                                            ? (timingData![startingTimePlussed])
+                                            : "End",
+                                      ),
+                                    ],
+                                  ),
+                                  Divider(),
+                                  Text(
+                                    subPreProcessor(routineSorted[ind][2]),
+                                    textAlign: TextAlign.right,
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 );
               },
             )
-          : Center(child: Text("Select a teacher name.")),
+          : Center(child: Text("Select a teacher name."));
+          }
+      ),
+      floatingActionButton: FloatingActionButton(
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          onPressed: _refresher ,
+          tooltip: 'Sync',
+          child: isSyncLoading
+              ? CircularProgressIndicator()
+              : Icon(Icons.refresh),
+        ),
     );
   }
 }
