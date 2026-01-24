@@ -119,56 +119,60 @@ class _RoomcheackerState extends State<Roomcheacker> {
                   return SizedBox.shrink();
                 }
 
-                return Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      child: Text(
-                        days[index],
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                return Card(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        child: Text(
+                          days[index],
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: routineSorted.length,
-                      itemBuilder: (BuildContext context, int ind) {
-                        final int startingTimePlussed = routineSorted[ind][1];
-                        return Card(
-                          child: Padding(
-                            padding: EdgeInsetsGeometry.all(7),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Column(
-                                  children: [
-                                    Text(timingData![startingTimePlussed - 1]),
-                                    Text("|"),
-                                    Text(
-                                      timingData!.length > startingTimePlussed
-                                          ? (timingData![startingTimePlussed])
-                                          : "End",
-                                    ),
-                                  ],
-                                ),
-                                Divider(),
-                                Text(
-                                  subPreProcessor(routineSorted[ind][2]),
-                                  textAlign: TextAlign.right,
-                                ),
-                              ],
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: routineSorted.length,
+                        itemBuilder: (BuildContext context, int ind) {
+                          final int startingTimePlussed = routineSorted[ind][1];
+                          return Card(
+                            color: Theme.of(context).colorScheme.inversePrimary,
+                            child: Padding(
+                              padding: EdgeInsetsGeometry.all(7),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    children: [
+                                      Text(timingData![startingTimePlussed - 1]),
+                                      Text("|"),
+                                      Text(
+                                        timingData!.length > startingTimePlussed
+                                            ? (timingData![startingTimePlussed])
+                                            : "End",
+                                      ),
+                                    ],
+                                  ),
+                                  Divider(),
+                                  Text(
+                                    subPreProcessor(routineSorted[ind][2]),
+                                    textAlign: TextAlign.right,
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 );
               },
             )
