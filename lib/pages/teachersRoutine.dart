@@ -5,6 +5,7 @@ import 'package:sheet_routine/fetcher/excel_fetcher.dart';
 import 'package:sheet_routine/main.dart';
 import 'package:sheet_routine/pages/google_sheet_config.dart';
 import 'package:sheet_routine/widgets/refresh_dialog.dart';
+import 'package:timeago_flutter/timeago_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 
@@ -52,6 +53,7 @@ class _TeachersRoutineState extends State<TeachersRoutine> {
 
   void _getTime() async {
     final time = await getValueFromHive("routine", "timeData", null);
+
     final teacherNameDb = await getValueFromHive(
       "settings",
       "teacherName",
@@ -71,6 +73,7 @@ class _TeachersRoutineState extends State<TeachersRoutine> {
       }
     }
   }
+
   void _refresher() async {
     // showDialog(context: context, builder: (context) => RefreshDialog());
     setState(() {
@@ -83,7 +86,10 @@ class _TeachersRoutineState extends State<TeachersRoutine> {
           isSyncLoading = false;
         });
         if (mounted) {
-          MyApp.restartApp(context);
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => TeachersRoutine()),
+          );
         }
       } else {
         if (mounted) {
@@ -94,6 +100,7 @@ class _TeachersRoutineState extends State<TeachersRoutine> {
       }
     });
   }
+
   @override
   Widget build(BuildContext context) {
     _getTime();
@@ -148,108 +155,138 @@ class _TeachersRoutineState extends State<TeachersRoutine> {
 
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       ),
-      body: 
-      FutureBuilder(future: _getConfig(), builder: 
-      (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return CircularProgressIndicator();
-            }
-            if (snapshot.hasError) {
-              return Text('Error: ${snapshot.error}');
-            }
-            if (snapshot.data == null) {
-              return Text('Sync Routine First');
-            }
+      body: FutureBuilder(
+        future: _getConfig(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return CircularProgressIndicator();
+          }
+          if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+          }
+          if (snapshot.data == null) {
+            return Text('Sync Routine First');
+          }
 
-            teachersRoutine = snapshot.data;
+          teachersRoutine = snapshot.data;
 
+          return selectedTeacher != null && teachersRoutine != null
+              ? ListView.builder(
+                  padding: EdgeInsets.only(bottom: 100),
+                  itemCount: days.length,
+                  itemBuilder: (cntx, index) {
+                    var routineSorted = teachersRoutine![selectedTeacher]!
+                        .where((element) => element[0] == days[index])
+                        .toList();
+                    routineSorted.sort((a, b) => (a[1] as int).compareTo(b[1]));
 
+                    if (routineSorted.isEmpty) {
+                      return SizedBox.shrink();
+                    }
 
-      return 
-      
-      selectedTeacher != null && teachersRoutine != null
-          ? ListView.builder(
-            padding: EdgeInsets.only(bottom: 100),
-              itemCount: days.length,
-              itemBuilder: (cntx, index) {
-                var routineSorted = teachersRoutine![selectedTeacher]!
-                    .where((element) => element[0] == days[index])
-                    .toList();
-                routineSorted.sort((a, b) => (a[1] as int).compareTo(b[1]));
-
-                if (routineSorted.isEmpty) {
-                  return SizedBox.shrink();
-                }
-
-                return Card(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        child: Text(
-                          days[index],
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                    return Card(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            child: Text(
+                              days[index],
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      ListView.builder(
-                        
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        itemCount: routineSorted.length,
-                        itemBuilder: (BuildContext context, int ind) {
-                          final int startingTimePlussed = routineSorted[ind][1];
-                          return Card(
-                            color: Theme.of(context).colorScheme.inversePrimary,
-                            child: Padding(
-                              padding: EdgeInsetsGeometry.all(7),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Column(
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: NeverScrollableScrollPhysics(),
+                            itemCount: routineSorted.length,
+                            itemBuilder: (BuildContext context, int ind) {
+                              final int startingTimePlussed =
+                                  routineSorted[ind][1];
+                              return Card(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.inversePrimary,
+                                child: Padding(
+                                  padding: EdgeInsetsGeometry.all(7),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(timingData![startingTimePlussed - 1]),
-                                      Text("|"),
+                                      Column(
+                                        children: [
+                                          Text(
+                                            timingData![startingTimePlussed -
+                                                1],
+                                          ),
+                                          Text("|"),
+                                          Text(
+                                            timingData!.length >
+                                                    startingTimePlussed
+                                                ? (timingData![startingTimePlussed])
+                                                : "End",
+                                          ),
+                                        ],
+                                      ),
+                                      Divider(),
                                       Text(
-                                        timingData!.length > startingTimePlussed
-                                            ? (timingData![startingTimePlussed])
-                                            : "End",
+                                        subPreProcessor(routineSorted[ind][2]),
+                                        textAlign: TextAlign.right,
                                       ),
                                     ],
                                   ),
-                                  Divider(),
-                                  Text(
-                                    subPreProcessor(routineSorted[ind][2]),
-                                    textAlign: TextAlign.right,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
+                                ),
+                              );
+                            },
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                );
-              },
-            )
-          : Center(child: Text("Select a teacher name."));
-          }
+                    );
+                  },
+                )
+              : Center(child: Text("Select a teacher name."));
+        },
       ),
       floatingActionButton: FloatingActionButton(
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          onPressed: _refresher ,
-          tooltip: 'Sync',
-          child: isSyncLoading
-              ? CircularProgressIndicator()
-              : Icon(Icons.refresh),
-        ),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        onPressed: _refresher,
+        tooltip: 'Sync',
+        child: isSyncLoading
+            ? CircularProgressIndicator()
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.refresh),
+                  FutureBuilder(
+                    future: getValueFromHive("routine", "syncAt", null),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return CircularProgressIndicator();
+                      }
+                      if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      }
+                      if (snapshot.data == null) {
+                        return Text('Sync Routine First');
+                      }
+
+                      var syncedTime = snapshot.data;
+                      return Timeago(
+                        builder: (context, value) =>
+                            Text(value, style: TextStyle(fontSize: 10)),
+                        date: syncedTime,
+                        locale: 'en_short',
+                      );
+                    },
+                  ),
+                ],
+              ),
+      ),
     );
   }
 }
