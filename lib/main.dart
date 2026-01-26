@@ -15,7 +15,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:pull_to_refresh_flutter3/pull_to_refresh_flutter3.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 
-const appVersion = "v2.1.6";
+const appVersion = "v2.1.7";
 
 extension IndexedIterable<E> on Iterable<E> {
   /// Maps each element and its index to a new value
@@ -61,7 +61,7 @@ List<String> _sheetList = routineConfig["sheetNames"] as List<String>;
 Map<String, dynamic> _days = {};
 List<String> _timeData = [];
 Map<String, dynamic> _teacher = {};
-var isSyncLoading = false;
+var _isSyncLoading = false;
 bool _autoTeacher = false;
 
 class _MyAppState extends State<MyApp> {
@@ -75,7 +75,7 @@ class _MyAppState extends State<MyApp> {
     await Hive.openBox('routine');
     // Reload data
     await _loadDefaultValue();
-    isSyncLoading = false;
+    _isSyncLoading = false;
   }
 
   Key key = UniqueKey();
@@ -109,11 +109,10 @@ class _MyAppState extends State<MyApp> {
       "autoTeacher",
       false,
     );
-    
+
     final timeData = await getValueFromHive("routine", "timeData", null);
     final tchr = await getValueFromHive("routine", "teacher", null);
     setState(() {
-
       _seedColor = seedC;
       if (config != null) {
         _title = config["routine_name"];
@@ -138,7 +137,7 @@ class _MyAppState extends State<MyApp> {
       if (tchr != null) {
         _teacher = Map<String, dynamic>.from(tchr);
       }
-      if(autoTeacherDb!=null){
+      if (autoTeacherDb != null) {
         _autoTeacher = autoTeacherDb;
       }
       _loading = false;
@@ -188,13 +187,13 @@ class _MyHomePageState extends State<MyHomePage> {
   void _refresher() async {
     // showDialog(context: context, builder: (context) => RefreshDialog());
     setState(() {
-      isSyncLoading = true;
+      _isSyncLoading = true;
     });
 
     await executer(context).then((value) {
       if (value == true) {
         setState(() {
-          isSyncLoading = false;
+          _isSyncLoading = false;
         });
         if (mounted) {
           MyApp.restartApp(context);
@@ -559,13 +558,24 @@ class _MyHomePageState extends State<MyHomePage> {
         !_enabled[0] &&
         !_enabled[1] &&
         !_enabled[2]);
-    if (_days != null && _autoTeacher == true && mounted && !Navigator.canPop(context)) {
-    Future.delayed(Duration(milliseconds: 2), () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => TeachersRoutine()),
-      );
-    });
+    if (_days != null &&
+        _autoTeacher == true &&
+        mounted &&
+        !Navigator.canPop(context)) {
+      Future.delayed(Duration(milliseconds: 2), () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => TeachersRoutine()),
+        );
+      });
+    }
+    if (widget.syncAt == null) {
+      Future.delayed(Duration(milliseconds: 2), () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => Settings()),
+        );
+      });
     }
     return DefaultTabController(
       length: getTabCout(),
@@ -720,7 +730,7 @@ class _MyHomePageState extends State<MyHomePage> {
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           onPressed: isBlank ? _refresher : _refreshController.requestRefresh,
           tooltip: 'Sync',
-          child: isSyncLoading
+          child: _isSyncLoading
               ? CircularProgressIndicator()
               : Icon(Icons.refresh),
         ),
