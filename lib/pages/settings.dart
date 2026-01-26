@@ -6,6 +6,9 @@ import 'package:sheet_routine/data/hive.dart';
 import 'package:sheet_routine/main.dart';
 import 'package:sheet_routine/pages/google_sheet_config.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
+import 'package:sheet_routine/pages/teachersRoutine.dart';
+import 'package:sheet_routine/widgets/refresh_dialog.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 Map<String, FlexScheme> themes = {
   "Black": FlexScheme.blackWhite,
@@ -123,15 +126,86 @@ class _SettingsState extends State<Settings> {
     return temp;
   }
 
+  void _refresher() async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Syncing"),
+        content: Row(
+          spacing: 10,
+          children: [
+            CircularProgressIndicator(),
+            Text("Syncing with config value..."),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              return;
+            },
+            child: Text("Close"),
+          ),
+        ],
+      ),
+    );
+
+    await executer(context).then((value) {
+      if (value == true) {
+        if (mounted) {
+          if (mounted && Navigator.canPop(context)) {
+            Navigator.pop(context);
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => Settings()),
+            );
+          }
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Something went wrong...")));
+        }
+      }
+    });
+  }
+
+  void _autoSync() {
+    Future.delayed(Duration(milliseconds: 20), () {
+      if (semesters.isEmpty) {
+        _refresher();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (loading) return CircularProgressIndicator();
+    _autoSync();
     return Scaffold(
       appBar: AppBar(
         title: Text("Settings"),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         actions: [
           IconButton(
+            tooltip: "Sync",
+            onPressed: _refresher,
+            icon: Icon(Icons.sync),
+          ),
+          IconButton(
+            tooltip: "Play Store",
+            onPressed: () {
+              launchUrl(
+                Uri.parse(
+                  "https://play.google.com/store/apps/details?id=com.rafizuddin.sheetroutine",
+                ),
+              );
+            },
+            icon: Icon(Icons.android),
+          ),
+          IconButton(
+            tooltip: "Delete Database",
             onPressed: () {
               showDialog(
                 context: context,
@@ -427,6 +501,14 @@ class _SettingsState extends State<Settings> {
                   setState(() {
                     autoTeacher = value;
                     setValueToHive("settings", "autoTeacher", value);
+                    if (value) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TeachersRoutine(),
+                        ),
+                      );
+                    }
                   });
                 },
               ),
@@ -440,6 +522,7 @@ class _SettingsState extends State<Settings> {
                     setValueToHive("settings", "theme", selectedTheme).then((
                       _,
                     ) {
+                      
                       setValueToHive(
                         "settings",
                         "selectedSemSec",
