@@ -183,7 +183,8 @@ class _TeachersRoutineState extends State<TeachersRoutine> {
                     if (routineSorted.isEmpty) {
                       return SizedBox.shrink();
                     }
-
+                    final DateTime now = DateTime.now();
+                    String dayName = days[now.weekday % 7];
                     return Card(
                       color: Theme.of(context).colorScheme.primaryContainer,
                       child: Column(
@@ -193,12 +194,23 @@ class _TeachersRoutineState extends State<TeachersRoutine> {
                               horizontal: 16,
                               vertical: 8,
                             ),
-                            child: Text(
-                              days[index],
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              spacing: 10,
+                              children: [
+                                dayName == days[index]
+                                    ? Icon(Icons.check)
+                                    : Padding(
+                                        padding: EdgeInsetsGeometry.all(0),
+                                      ),
+                                Text(
+                                  days[index],
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           ListView.builder(
@@ -266,7 +278,7 @@ class _TeachersRoutineState extends State<TeachersRoutine> {
                     future: getValueFromHive("routine", "syncAt", null),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return CircularProgressIndicator();
+                        return Text("...");
                       }
                       if (snapshot.hasError) {
                         return Text('Error: ${snapshot.error}');

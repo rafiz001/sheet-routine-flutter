@@ -118,7 +118,8 @@ class _RoomcheackerState extends State<Roomcheacker> {
                 if (routineSorted.isEmpty) {
                   return SizedBox.shrink();
                 }
-
+                    final DateTime now = DateTime.now();
+                    String dayName = days[now.weekday % 7];
                 return Card(
                   color: Theme.of(context).colorScheme.primaryContainer,
                   child: Column(
@@ -128,13 +129,24 @@ class _RoomcheackerState extends State<Roomcheacker> {
                           horizontal: 16,
                           vertical: 8,
                         ),
-                        child: Text(
-                          days[index],
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              spacing: 10,
+                              children: [
+                                dayName == days[index]
+                                    ? Icon(Icons.check)
+                                    : Padding(
+                                        padding: EdgeInsetsGeometry.all(0),
+                                      ),
+                                Text(
+                                  days[index],
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
                       ),
                       ListView.builder(
                         shrinkWrap: true,

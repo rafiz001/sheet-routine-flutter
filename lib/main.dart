@@ -15,7 +15,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:pull_to_refresh_flutter3/pull_to_refresh_flutter3.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 
-const appVersion = "v2.1.7";
+const appVersion = "v2.1.8";
 
 extension IndexedIterable<E> on Iterable<E> {
   /// Maps each element and its index to a new value
